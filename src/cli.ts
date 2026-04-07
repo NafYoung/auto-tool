@@ -25,8 +25,9 @@ program
   .description("检查公众号是否有新文章，并写入本地状态")
   .option("-c, --config <path>", "配置文件路径", DEFAULT_CONFIG_PATH)
   .option("--headed", "有界面启动浏览器，便于排查登录态", false)
+  .option("--discovery-mode <mode>", "文章发现模式: hybrid, rss-only, search-only")
   .action(async (options) => {
-    await runCheck(options.config, !options.headed);
+    await runCheck(options.config, !options.headed, options.discoveryMode);
   });
 
 program
@@ -51,6 +52,7 @@ program
   .option("-c, --config <path>", "配置文件路径", DEFAULT_CONFIG_PATH)
   .option("--headed", "有界面启动浏览器，便于调试登录态", false)
   .option("--strict-failures", "当抓取异常时以失败状态退出，便于自动化告警", false)
+  .option("--discovery-mode <mode>", "文章发现模式: hybrid, rss-only, search-only")
   .option("--once", "立刻执行一次检测与日报流程，然后退出", false)
   .option("--date <date>", "仅在 --once 时有效，指定生成哪一天的日报")
   .action(async (options) => {
@@ -58,6 +60,7 @@ program
       configPath: options.config,
       headless: !options.headed,
       strictFailures: options.strictFailures,
+      discoveryMode: options.discoveryMode,
       once: options.once,
       reportDate: options.date,
     });

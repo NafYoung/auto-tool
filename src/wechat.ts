@@ -19,6 +19,7 @@ import type {
   AppConfig,
   AppState,
   ArticleCandidate,
+  DiscoveryMode,
   FetchedArticle,
   ReportFailure,
   SourceBootstrapMetadata,
@@ -34,6 +35,23 @@ interface SearchResultRow {
   account?: string;
   titleHint?: string;
   url?: string;
+}
+
+function resolveDiscoveryMethods(
+  source: WeChatSourceConfig,
+  discoveryMode: DiscoveryMode,
+): Array<"feed" | "sogou"> {
+  const methods: Array<"feed" | "sogou"> = [];
+
+  if (discoveryMode !== "search-only" && source.rssFeedUrls?.length) {
+    methods.push("feed");
+  }
+
+  if (discoveryMode !== "rss-only") {
+    methods.push("sogou");
+  }
+
+  return methods;
 }
 
 function buildArticleTextSelectors(source: WeChatSourceConfig): string[] {
@@ -570,10 +588,14 @@ async function collectArticleCandidatesFromFeeds(
 async function collectArticleCandidates(
   listPage: Page,
   source: WeChatSourceConfig,
+  discoveryMode: DiscoveryMode = "hybrid",
 ): Promise<ArticleCandidate[]> {
   const errors: string[] = [];
+  const methods = resolveDiscoveryMethods(source, discoveryMode);
+  const canUseFeeds = methods.includes("feed");
+  const canUseSogou = methods.includes("sogou");
 
-  if (source.rssFeedUrls?.length) {
+  if (canUseFeeds) {
     try {
       const candidates = await collectArticleCandidatesFromFeeds(source);
       if (candidates.length > 0) {
@@ -583,6 +605,13 @@ async function collectArticleCandidates(
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
     }
+  }
+
+  if (!canUseSogou) {
+    if (!canUseFeeds) {
+      errors.push("rss-only 模式要求为该公众号配置 rssFeedUrls。");
+    }
+    throw new Error(errors.join("；"));
   }
 
   try {
@@ -670,7 +699,7 @@ function isUsableProfileUrl(profileUrl: string | undefined): profileUrl is strin
 export async function checkSources(
   config: AppConfig,
   state: AppState,
-  options: { headless: boolean },
+  options: { headless: boolean; discoveryMode?: DiscoveryMode },
 ): Promise<CheckResult> {
   const reportDate = getReportDateForTimestamp(new Date().toISOString(), config.schedule);
   const newArticles: StoredArticle[] = [];
@@ -690,7 +719,11 @@ export async function checkSources(
         };
 
         try {
-          const candidates = await collectArticleCandidates(listPage, source);
+          const candidates = await collectArticleCandidates(
+            listPage,
+            source,
+            options.discoveryMode ?? "hybrid",
+          );
 
           for (const candidate of candidates) {
             if (
@@ -754,4 +787,5 @@ export const __internal = {
   buildSearchQueries,
   isLikelySameAccount,
   sameBizId,
+  resolveDiscoveryMethods,
 };

@@ -18,10 +18,29 @@ import {
   saveState,
 } from "./state.js";
 import { bootstrapSources, checkSources } from "./wechat.js";
-import type { AppConfig, AppState, ReportFailure, StoredArticle, StoredReport } from "./types.js";
+import type {
+  AppConfig,
+  AppState,
+  DiscoveryMode,
+  ReportFailure,
+  StoredArticle,
+  StoredReport,
+} from "./types.js";
 
 function pickConfigPath(configPath?: string): string {
   return configPath ?? DEFAULT_CONFIG_PATH;
+}
+
+function normalizeDiscoveryMode(input?: string): DiscoveryMode | undefined {
+  if (!input) {
+    return undefined;
+  }
+
+  if (input === "hybrid" || input === "rss-only" || input === "search-only") {
+    return input;
+  }
+
+  throw new Error(`discoveryMode 非法: ${input}。可选值: hybrid, rss-only, search-only`);
 }
 
 export function ensureNoSourceFailures(
@@ -92,10 +111,17 @@ export async function runBootstrap(configPath?: string, headless = false): Promi
   }
 }
 
-export async function runCheck(configPath?: string, headless = true) {
+export async function runCheck(
+  configPath?: string,
+  headless = true,
+  discoveryMode?: string,
+) {
   const config = await loadConfig(pickConfigPath(configPath));
   const state = await loadState(config.dataDir);
-  const result = await checkSources(config, state, { headless });
+  const result = await checkSources(config, state, {
+    headless,
+    discoveryMode: normalizeDiscoveryMode(discoveryMode),
+  });
   await saveState(config.dataDir, state);
 
   console.log(`check 完成，新增文章 ${result.newArticles.length} 篇，异常 ${result.failures.length} 个。`);
@@ -188,6 +214,7 @@ export async function runDaily(options: {
   configPath?: string;
   headless?: boolean;
   strictFailures?: boolean;
+  discoveryMode?: string;
   once?: boolean;
   reportDate?: string;
 } = {}) {
@@ -196,7 +223,7 @@ export async function runDaily(options: {
   const headless = options.headless ?? true;
 
   const executeOnce = async () => {
-    const checkResult = await runCheck(configPath, headless);
+    const checkResult = await runCheck(configPath, headless, options.discoveryMode);
     ensureNoSourceFailures(checkResult.failures, options.strictFailures ?? false);
     await runReport({
       configPath,

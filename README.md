@@ -12,6 +12,7 @@
 ```bash
 npm run bootstrap
 npm run check
+npm run check -- --discovery-mode rss-only
 npm run report -- --date 2026-04-01
 npm run run-daily
 npm run install-launchd
@@ -57,6 +58,7 @@ export MAIL_TO=your@email.com
 - 云端模式仍然使用 Playwright 打开真实微信文章页抓正文，但不再依赖搜狗 GUI 搜索和本机登录态。
 - GitHub Actions 工作流会在每天北京时间 `19:00` 运行一次，对应 UTC `11:00`。
 - GitHub Actions 现在以严格模式运行，只要文章发现源异常，工作流就会标红，避免把抓取失败误判成“当天无新文章”。
+- GitHub Actions 现在还会强制使用 `rss-only` 发现模式，不再回退到搜狗搜索，避免 headless 环境下的搜狗反爬噪音。
 - 工作流会把 `data/state.json` 和 `reports/*.md` 提交回仓库，确保“已处理文章”状态能跨天持久化。
 - 如果不持久化状态，第二天运行会把同一批旧文章再次算作新文章。
 
@@ -65,6 +67,7 @@ export MAIL_TO=your@email.com
 注意：
 
 - 如果同时配置了 `rssFeedUrls` 和 `searchQuery`，程序会先试订阅源，失败后再回退到搜狗搜索。
+- 如果使用 `--discovery-mode rss-only`，程序只会使用 `rssFeedUrls`，不会回退到搜狗。
 - 公共 RSSHub 实例可作为起点，但稳定性不保证。要做长期无人值守，最好改成你自己的 RSSHub 实例或你确认稳定的第三方实例。
 
 ## macOS 自动化

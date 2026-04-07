@@ -30,4 +30,38 @@ describe("wechat search helpers", () => {
     expect(__internal.isLikelySameAccount("数字文旅观察官方", "数字文旅观察")).toBe(true);
     expect(__internal.isLikelySameAccount("别的公众号", "数字文旅观察")).toBe(false);
   });
+
+  it("uses only feed discovery in rss-only mode", () => {
+    expect(
+      __internal.resolveDiscoveryMethods(
+        {
+          id: "source",
+          accountName: "数字文旅观察",
+          seedArticleUrl: "https://mp.weixin.qq.com/s/example",
+          searchQuery: "数字文旅观察 公众号",
+          rssFeedUrls: ["https://example.com/feed.xml"],
+          maxArticlesPerCheck: 6,
+          selectors: {},
+        },
+        "rss-only",
+      ),
+    ).toEqual(["feed"]);
+  });
+
+  it("falls back to search in hybrid mode", () => {
+    expect(
+      __internal.resolveDiscoveryMethods(
+        {
+          id: "source",
+          accountName: "数字文旅观察",
+          seedArticleUrl: "https://mp.weixin.qq.com/s/example",
+          searchQuery: "数字文旅观察 公众号",
+          rssFeedUrls: ["https://example.com/feed.xml"],
+          maxArticlesPerCheck: 6,
+          selectors: {},
+        },
+        "hybrid",
+      ),
+    ).toEqual(["feed", "sogou"]);
+  });
 });

@@ -6,6 +6,8 @@ export interface SourceSelectors {
   profileLink?: string;
 }
 
+export type DiscoveryMode = "hybrid" | "rss-only" | "search-only";
+
 export interface WeChatSourceConfig {
   id: string;
   accountName: string;

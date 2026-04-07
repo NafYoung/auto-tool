@@ -48,7 +48,7 @@ jobs:
       - name: Run daily digest once
         id: digest
         continue-on-error: true
-        run: node dist/cli.js run-daily --once --strict-failures --config wenlv.config.json
+        run: node dist/cli.js run-daily --once --strict-failures --discovery-mode rss-only --config wenlv.config.json
 
       - name: Persist state and reports
         if: always()
