@@ -1,0 +1,65 @@
+name: Daily Digest
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 11 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      MAIL_TO: ${{ secrets.MAIL_TO }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Run daily digest once
+        run: node dist/cli.js run-daily --once --config wenlv.config.json
+
+      - name: Persist state and reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git add -f data/state.json
+          if ls reports/*.md >/dev/null 2>&1; then
+            git add -f reports/*.md
+          fi
+          if git diff --cached --quiet; then
+            echo "No state changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: update digest state"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

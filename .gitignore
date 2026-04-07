@@ -1,0 +1,12 @@
+node_modules
+dist
+playwright-report
+test-results
+.DS_Store
+
+data/state.json
+data/browser-profile
+reports/*.md
+logs/*.log
+
+!.gitkeep

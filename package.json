@@ -1,0 +1,47 @@
+{
+  "name": "wenlv-news-digest",
+  "version": "0.1.0",
+  "description": "Monitor selected WeChat public accounts, summarize new travel industry news, and send a daily digest email.",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "wenlv-digest": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "bootstrap": "tsx src/cli.ts bootstrap",
+    "check": "tsx src/cli.ts check",
+    "report": "tsx src/cli.ts report",
+    "run-daily": "tsx src/cli.ts run-daily",
+    "install-launchd": "zsh ./scripts/install-launchd.sh",
+    "uninstall-launchd": "zsh ./scripts/uninstall-launchd.sh"
+  },
+  "keywords": [
+    "wechat",
+    "digest",
+    "travel",
+    "news"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^14.0.1",
+    "fast-xml-parser": "^5.5.10",
+    "luxon": "^3.7.2",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.9",
+    "openai": "^6.4.0",
+    "playwright": "^1.56.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^25.5.0",
+    "@types/nodemailer": "^7.0.11",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "browserProfilePath": "./data/browser-profile",
+  "dataDir": "./data",
+  "reportDir": "./reports",
+  "schedule": {
+    "timezone": "Asia/Shanghai",
+    "dailyReportTime": "19:00"
+  },
+  "deepseek": {
+    "baseUrl": "https://api.deepseek.com",
+    "model": "deepseek-chat",
+    "temperature": 0.3,
+    "maxOutputTokens": 800
+  },
+  "email": {
+    "from": "文旅公众号日报 <replace-me@example.com>",
+    "subjectPrefix": "文旅公众号日报"
+  },
+  "sources": [
+    {
+      "id": "digital-tourism-observer",
+      "accountName": "数字文旅观察",
+      "seedArticleUrl": "https://mp.weixin.qq.com/s/wHwabix4g8IO3YsChspkRQ",
+      "searchQuery": "数字文旅观察 公众号",
+      "rssFeedUrls": [
+        "https://rsshub.app/wechat/uread/DCTA2024"
+      ],
+      "maxArticlesPerCheck": 6,
+      "selectors": {}
+    },
+    {
+      "id": "shanghai-tourism-industry-institute",
+      "accountName": "上海文旅产业研究院",
+      "seedArticleUrl": "https://mp.weixin.qq.com/s/x1kS-ky3jcnGeNgnQoL57A",
+      "searchQuery": "上海文旅产业研究院",
+      "rssFeedUrls": [
+        "https://rsshub.app/wechat/uread/sh_act"
+      ],
+      "maxArticlesPerCheck": 6,
+      "selectors": {}
+    }
+  ]
+}
