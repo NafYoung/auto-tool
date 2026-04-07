@@ -18,10 +18,24 @@ import {
   saveState,
 } from "./state.js";
 import { bootstrapSources, checkSources } from "./wechat.js";
-import type { AppConfig, AppState, StoredArticle, StoredReport } from "./types.js";
+import type { AppConfig, AppState, ReportFailure, StoredArticle, StoredReport } from "./types.js";
 
 function pickConfigPath(configPath?: string): string {
   return configPath ?? DEFAULT_CONFIG_PATH;
+}
+
+export function ensureNoSourceFailures(
+  failures: ReportFailure[],
+  strictFailures = false,
+): void {
+  if (!strictFailures || failures.length === 0) {
+    return;
+  }
+
+  const sourceNames = [...new Set(failures.map((failure) => failure.sourceName))];
+  throw new Error(
+    `本次抓取存在 ${failures.length} 个来源异常，已中止日报发送：${sourceNames.join("、")}`,
+  );
 }
 
 async function ensureArticleSummaries(
@@ -173,6 +187,7 @@ export async function runReport(
 export async function runDaily(options: {
   configPath?: string;
   headless?: boolean;
+  strictFailures?: boolean;
   once?: boolean;
   reportDate?: string;
 } = {}) {
@@ -181,7 +196,8 @@ export async function runDaily(options: {
   const headless = options.headless ?? true;
 
   const executeOnce = async () => {
-    await runCheck(configPath, headless);
+    const checkResult = await runCheck(configPath, headless);
+    ensureNoSourceFailures(checkResult.failures, options.strictFailures ?? false);
     await runReport({
       configPath,
       reportDate: options.reportDate ?? getCurrentReportDate(config.schedule),

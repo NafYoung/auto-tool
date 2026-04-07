@@ -46,9 +46,12 @@ jobs:
         run: npm run build
 
       - name: Run daily digest once
-        run: node dist/cli.js run-daily --once --config wenlv.config.json
+        id: digest
+        continue-on-error: true
+        run: node dist/cli.js run-daily --once --strict-failures --config wenlv.config.json
 
       - name: Persist state and reports
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -63,3 +66,7 @@ jobs:
           fi
           git commit -m "chore: update digest state"
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Fail workflow when digest step has source errors
+        if: steps.digest.outcome != 'success'
+        run: exit 1

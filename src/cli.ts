@@ -50,12 +50,14 @@ program
   .description("启动每日 19:00 的本地调度任务")
   .option("-c, --config <path>", "配置文件路径", DEFAULT_CONFIG_PATH)
   .option("--headed", "有界面启动浏览器，便于调试登录态", false)
+  .option("--strict-failures", "当抓取异常时以失败状态退出，便于自动化告警", false)
   .option("--once", "立刻执行一次检测与日报流程，然后退出", false)
   .option("--date <date>", "仅在 --once 时有效，指定生成哪一天的日报")
   .action(async (options) => {
     await runDaily({
       configPath: options.config,
       headless: !options.headed,
+      strictFailures: options.strictFailures,
       once: options.once,
       reportDate: options.date,
     });

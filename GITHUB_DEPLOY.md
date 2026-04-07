@@ -86,6 +86,7 @@ git push -u origin main
 - [.github/workflows/daily-digest.yml](/Users/nafyoung/Documents/Codex%20Project/文旅新闻总结/.github/workflows/daily-digest.yml)
 
 它会在每天北京时间 `19:00` 运行。
+现在工作流会以严格模式运行：只要抓取来源异常，任务就会直接失败并标红，避免把失败误记成“无新文章”。
 
 第一次建议手动触发：
 
@@ -103,6 +104,7 @@ git push -u origin main
 
 如果当天有新文章，会发邮件到 `MAIL_TO`。
 如果当天没有新文章，工作流会成功结束，但不会发空邮件。
+如果抓取来源异常，工作流会失败，你需要查看 `Run daily digest once` 的日志。
 
 ## 6. 常见问题
 
