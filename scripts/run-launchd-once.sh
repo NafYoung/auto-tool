@@ -44,4 +44,4 @@ if [[ -z "${NODE_BIN}" ]]; then
   exit 1
 fi
 
-exec "${NODE_BIN}" dist/cli.js run-daily --once --headed
+exec "${NODE_BIN}" dist/cli.js run-daily --once --headed --discovery-mode search-only

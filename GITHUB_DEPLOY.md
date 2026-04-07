@@ -96,7 +96,7 @@ npm run sync-feeds
 
 - [.github/workflows/daily-digest.yml](/Users/nafyoung/Documents/Codex%20Project/文旅新闻总结/.github/workflows/daily-digest.yml)
 
-它会在每天北京时间 `19:00` 运行。
+当前仓库里的工作流默认只保留手动触发，用于调试。
 现在工作流会以严格模式运行：只要抓取来源异常，任务就会直接失败并标红，避免把失败误记成“无新文章”。
 现在工作流还会强制使用 `rss-only` 发现模式：只走 `rssFeedUrls`，不再回退到搜狗搜索。
 

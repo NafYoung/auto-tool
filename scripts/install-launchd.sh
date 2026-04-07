@@ -60,7 +60,7 @@ if [[ -z "\${NODE_BIN}" ]]; then
 fi
 
 cd "\${PROJECT_DIR}"
-exec "\${NODE_BIN}" "\${PROJECT_DIR}/dist/cli.js" run-daily --once --headed
+exec "\${NODE_BIN}" "\${PROJECT_DIR}/dist/cli.js" run-daily --once --headed --discovery-mode search-only
 EOF
 
 chmod +x "${WRAPPER_PATH}"

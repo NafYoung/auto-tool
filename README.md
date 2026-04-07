@@ -92,7 +92,7 @@ npm run sync-feeds
 说明：
 
 - 云端模式仍然使用 Playwright 打开真实微信文章页抓正文，但不再依赖搜狗 GUI 搜索和本机登录态。
-- GitHub Actions 工作流会在每天北京时间 `19:00` 运行一次，对应 UTC `11:00`。
+- 当前仓库里的 GitHub Actions 工作流默认只保留手动触发，用于调试，不再按天自动运行。
 - GitHub Actions 现在以严格模式运行，只要文章发现源异常，工作流就会标红，避免把抓取失败误判成“当天无新文章”。
 - GitHub Actions 现在还会强制使用 `rss-only` 发现模式，不再回退到搜狗搜索，避免 headless 环境下的搜狗反爬噪音。
 - 工作流会把 `data/state.json` 和 `reports/*.md` 提交回仓库，确保“已处理文章”状态能跨天持久化。
