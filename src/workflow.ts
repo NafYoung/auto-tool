@@ -5,11 +5,13 @@ import {
   loadConfig,
   resolveDeepSeekRuntime,
   resolveEmailRuntime,
+  resolveWechat2RssRuntime,
 } from "./config.js";
 import { summarizeArticle, summarizeOverview } from "./deepseek.js";
 import { getCurrentReportDate, toCronExpression } from "./digest.js";
 import { sendDigestEmail } from "./email.js";
 import { renderDailyReportMarkdown, saveReportMarkdown } from "./report.js";
+import { syncWechat2RssFeeds } from "./wechat2rss.js";
 import {
   getArticlesForReportDate,
   getFailuresForReportDate,
@@ -108,6 +110,27 @@ export async function runBootstrap(configPath?: string, headless = false): Promi
   console.log(`bootstrap 完成，共处理 ${bootstrapped.length} 个公众号。`);
   for (const item of bootstrapped) {
     console.log(`- ${item.accountName ?? "未知公众号"} -> ${item.derivedProfileUrl ?? "未推导出主页链接"}`);
+  }
+}
+
+export async function runSyncFeeds(
+  options: {
+    configPath?: string;
+    dryRun?: boolean;
+  } = {},
+): Promise<void> {
+  const configPath = pickConfigPath(options.configPath);
+  const results = await syncWechat2RssFeeds(
+    configPath,
+    resolveWechat2RssRuntime(),
+    { dryRun: options.dryRun },
+  );
+
+  console.log(
+    `${options.dryRun ? "预览" : "同步"}完成，共处理 ${results.length} 个公众号的 rssFeedUrls。`,
+  );
+  for (const result of results) {
+    console.log(`- [${result.accountName}] ${result.feedUrl}`);
   }
 }
 

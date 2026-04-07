@@ -48,7 +48,7 @@ const configSchema = z.object({
   sources: z.array(sourceSchema).min(1),
 });
 
-function resolveConfigPath(configPath: string): string {
+export function resolveConfigPath(configPath: string): string {
   return path.isAbsolute(configPath)
     ? configPath
     : path.resolve(process.cwd(), configPath);
@@ -124,6 +124,11 @@ export interface EmailRuntime {
   subjectPrefix: string;
 }
 
+export interface Wechat2RssRuntime {
+  baseUrl: string;
+  token: string;
+}
+
 export function resolveDeepSeekRuntime(
   config: AppConfig,
   env: NodeJS.ProcessEnv = process.env,
@@ -167,5 +172,19 @@ export function resolveEmailRuntime(
     to,
     from: config.email.from,
     subjectPrefix: config.email.subjectPrefix,
+  };
+}
+
+export function resolveWechat2RssRuntime(
+  env: NodeJS.ProcessEnv = process.env,
+): Wechat2RssRuntime {
+  const { WECHAT2RSS_BASE_URL, WECHAT2RSS_TOKEN } = requireEnvVars(
+    ["WECHAT2RSS_BASE_URL", "WECHAT2RSS_TOKEN"],
+    env,
+  );
+
+  return {
+    baseUrl: WECHAT2RSS_BASE_URL,
+    token: WECHAT2RSS_TOKEN,
   };
 }

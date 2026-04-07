@@ -2,7 +2,7 @@
 
 import { Command } from "commander";
 import { DEFAULT_CONFIG_PATH } from "./config.js";
-import { runBootstrap, runCheck, runDaily, runReport } from "./workflow.js";
+import { runBootstrap, runCheck, runDaily, runReport, runSyncFeeds } from "./workflow.js";
 
 const program = new Command();
 
@@ -43,6 +43,18 @@ program
       reportDate: options.date,
       sendEmail: options.sendEmail,
       force: options.force,
+    });
+  });
+
+program
+  .command("sync-feeds")
+  .description("用 Wechat2RSS 根据 seedArticleUrl 同步 rssFeedUrls 到配置文件")
+  .option("-c, --config <path>", "配置文件路径", DEFAULT_CONFIG_PATH)
+  .option("--dry-run", "只预览 feed 结果，不写回配置文件", false)
+  .action(async (options) => {
+    await runSyncFeeds({
+      configPath: options.config,
+      dryRun: options.dryRun,
     });
   });
 

@@ -79,6 +79,17 @@ git push -u origin main
 
 如果你后面改成自己的 RSSHub 实例，只需要把这两个 URL 的域名替换掉即可。
 
+如果你准备切到 Wechat2RSS，推荐不要手工改，直接在本地跑：
+
+```bash
+export WECHAT2RSS_BASE_URL=https://your-wechat2rss.example.com
+export WECHAT2RSS_TOKEN=your_wechat2rss_token
+npm run sync-feeds -- --dry-run
+npm run sync-feeds
+```
+
+这样会根据 `seedArticleUrl` 自动向 Wechat2RSS 申请 feed，并把返回值写回配置文件。
+
 ## 4. 启用并测试工作流
 
 工作流文件在：
@@ -124,7 +135,8 @@ git push -u origin main
 
 1. 先手动触发一次，确认是否只是临时超时
 2. 如果长期超时，把 `rsshub.app` 换成你自己的 RSSHub 实例
-3. GitHub Actions 现在不会再回退到搜狗搜索；如果 feed 长期不稳定，就换成你自己的 RSSHub 实例或稳定第三方 feed
+3. 如果你已经部署了 Wechat2RSS，直接运行 `npm run sync-feeds`，把配置切到自己的 Wechat2RSS feed
+4. GitHub Actions 现在不会再回退到搜狗搜索；如果 feed 长期不稳定，就换成你自己的 RSSHub 实例或稳定第三方 feed
 
 ### 6.3 为什么需要把 `data/state.json` 提交回仓库
 

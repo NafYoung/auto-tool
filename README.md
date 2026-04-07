@@ -13,6 +13,7 @@
 npm run bootstrap
 npm run check
 npm run check -- --discovery-mode rss-only
+npm run sync-feeds -- --dry-run
 npm run report -- --date 2026-04-01
 npm run run-daily
 npm run install-launchd
@@ -30,6 +31,13 @@ export SMTP_PASS=your_password
 export MAIL_TO=your@email.com
 ```
 
+可选的 Wechat2RSS 集成环境变量：
+
+```bash
+export WECHAT2RSS_BASE_URL=https://your-wechat2rss.example.com
+export WECHAT2RSS_TOKEN=your_wechat2rss_token
+```
+
 ## 首次使用
 
 1. 编辑 `wenlv.config.json` 中的 `email.from`，必要时调整 `browserProfilePath`。
@@ -37,6 +45,34 @@ export MAIL_TO=your@email.com
 3. 运行 `npm run check` 检查能否抓到新文章。
 4. 运行 `npm run report -- --date YYYY-MM-DD --send-email` 生成并发送指定日期日报。
 5. 运行 `npm run run-daily` 持续驻留，在每天 `19:00` 自动执行。
+
+## Wechat2RSS 接入
+
+如果你要做长期无人值守的云端模式，推荐把 `rssFeedUrls` 切到你自己的 Wechat2RSS 实例。
+
+最短流程：
+
+1. 先按官方文档部署 Wechat2RSS，并完成授权与域名配置。
+2. 在本地配置：
+
+```bash
+export WECHAT2RSS_BASE_URL=https://your-wechat2rss.example.com
+export WECHAT2RSS_TOKEN=your_wechat2rss_token
+```
+
+3. 先预览同步结果：
+
+```bash
+npm run sync-feeds -- --dry-run
+```
+
+4. 确认没问题后写回配置文件：
+
+```bash
+npm run sync-feeds
+```
+
+这个命令会用每个 `source.seedArticleUrl` 调 Wechat2RSS 的 `/addurl` API，并把返回的 feed URL 写回 `wenlv.config.json` 的 `rssFeedUrls`。
 
 ## 云端模式（第二阶段）
 
@@ -69,6 +105,7 @@ export MAIL_TO=your@email.com
 - 如果同时配置了 `rssFeedUrls` 和 `searchQuery`，程序会先试订阅源，失败后再回退到搜狗搜索。
 - 如果使用 `--discovery-mode rss-only`，程序只会使用 `rssFeedUrls`，不会回退到搜狗。
 - 公共 RSSHub 实例可作为起点，但稳定性不保证。要做长期无人值守，最好改成你自己的 RSSHub 实例或你确认稳定的第三方实例。
+- 如果你已经部署了 Wechat2RSS，推荐直接用 `npm run sync-feeds` 把 `rssFeedUrls` 换成自己的实例返回值。
 
 ## macOS 自动化
 
