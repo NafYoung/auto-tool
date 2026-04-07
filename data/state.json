@@ -5,15 +5,15 @@
       "id": "digital-tourism-observer",
       "accountName": "数字文旅观察",
       "lastProcessedUrls": [],
-      "lastCheckedAt": "2026-04-07T06:05:56.999Z",
-      "lastError": "订阅源请求失败: https://rsshub.app/wechat/uread/DCTA2024 (403)；page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://weixin.sogou.com/weixin?type=2&query=%E6%95%B0%E5%AD%97%E6%96%87%E6%97%85%E8%A7%82%E5%AF%9F%20%E5%85%AC%E4%BC%97%E5%8F%B7\", waiting until \"domcontentloaded\"\n"
+      "lastCheckedAt": "2026-04-07T06:18:02.326Z",
+      "lastError": "订阅源请求失败: https://rsshub.app/wechat/uread/DCTA2024 (403)；搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
     },
     "shanghai-tourism-industry-institute": {
       "id": "shanghai-tourism-industry-institute",
       "accountName": "上海文旅产业研究院",
       "lastProcessedUrls": [],
-      "lastCheckedAt": "2026-04-07T06:06:57.047Z",
-      "lastError": "订阅源请求失败: https://rsshub.app/wechat/uread/sh_act (403)；page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://weixin.sogou.com/weixin?type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2\", waiting until \"domcontentloaded\"\n"
+      "lastCheckedAt": "2026-04-07T06:18:04.352Z",
+      "lastError": "订阅源请求失败: https://rsshub.app/wechat/uread/sh_act (403)；搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
     }
   },
   "articles": {},
@@ -30,6 +30,18 @@
         "sourceName": "上海文旅产业研究院",
         "failedAt": "2026-04-07T06:05:56.999Z",
         "message": "订阅源请求失败: https://rsshub.app/wechat/uread/sh_act (403)；page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://weixin.sogou.com/weixin?type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2\", waiting until \"domcontentloaded\"\n"
+      },
+      {
+        "sourceId": "digital-tourism-observer",
+        "sourceName": "数字文旅观察",
+        "failedAt": "2026-04-07T06:17:58.557Z",
+        "message": "订阅源请求失败: https://rsshub.app/wechat/uread/DCTA2024 (403)；搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
+      },
+      {
+        "sourceId": "shanghai-tourism-industry-institute",
+        "sourceName": "上海文旅产业研究院",
+        "failedAt": "2026-04-07T06:18:02.326Z",
+        "message": "订阅源请求失败: https://rsshub.app/wechat/uread/sh_act (403)；搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
       }
     ]
   },
