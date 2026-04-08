@@ -15,6 +15,7 @@ describe("wechat search helpers", () => {
         accountName: "数字文旅观察",
         seedArticleUrl: "https://mp.weixin.qq.com/s/example",
         searchQuery: "数字文旅观察 公众号",
+        maxArticleAgeDays: 2,
         maxArticlesPerCheck: 6,
         selectors: {},
       }),
@@ -40,6 +41,7 @@ describe("wechat search helpers", () => {
           seedArticleUrl: "https://mp.weixin.qq.com/s/example",
           searchQuery: "数字文旅观察 公众号",
           rssFeedUrls: ["https://example.com/feed.xml"],
+          maxArticleAgeDays: 2,
           maxArticlesPerCheck: 6,
           selectors: {},
         },
@@ -57,11 +59,30 @@ describe("wechat search helpers", () => {
           seedArticleUrl: "https://mp.weixin.qq.com/s/example",
           searchQuery: "数字文旅观察 公众号",
           rssFeedUrls: ["https://example.com/feed.xml"],
+          maxArticleAgeDays: 2,
           maxArticlesPerCheck: 6,
           selectors: {},
         },
         "hybrid",
       ),
     ).toEqual(["feed", "sogou"]);
+  });
+
+  it("builds fallback search queries without duplicates when age filter is configured", () => {
+    expect(
+      __internal.buildSearchQueries({
+        id: "source",
+        accountName: "数字文旅观察",
+        seedArticleUrl: "https://mp.weixin.qq.com/s/example",
+        searchQuery: "数字文旅观察 公众号",
+        maxArticleAgeDays: 2,
+        maxArticlesPerCheck: 6,
+        selectors: {},
+      }),
+    ).toEqual([
+      "数字文旅观察 公众号",
+      "数字文旅观察",
+      "数字文旅观察 微信",
+    ]);
   });
 });

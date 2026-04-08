@@ -79,6 +79,23 @@ export function isTimestampInReportWindow(
   return moment > start && moment <= end;
 }
 
+export function isTimestampFreshForReport(
+  timestamp: string,
+  reportDate: string,
+  schedule: ScheduleConfig,
+  maxAgeDays: number,
+): boolean {
+  const moment = DateTime.fromISO(timestamp, { zone: schedule.timezone });
+
+  if (!moment.isValid) {
+    return false;
+  }
+
+  const cutoff = getCutoffForDate(reportDate, schedule);
+  const freshnessStart = cutoff.minus({ days: maxAgeDays });
+  return moment >= freshnessStart && moment <= cutoff;
+}
+
 export function getCurrentReportDate(
   schedule: ScheduleConfig,
   now = DateTime.now().setZone(schedule.timezone),

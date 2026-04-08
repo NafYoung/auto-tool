@@ -15,6 +15,7 @@ export interface WeChatSourceConfig {
   searchQuery?: string;
   rssFeedUrls?: string[];
   profileUrl?: string;
+  maxArticleAgeDays: number;
   maxArticlesPerCheck: number;
   selectors: SourceSelectors;
 }

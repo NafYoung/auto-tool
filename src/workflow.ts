@@ -8,7 +8,7 @@ import {
   resolveWechat2RssRuntime,
 } from "./config.js";
 import { summarizeArticle, summarizeOverview } from "./deepseek.js";
-import { getCurrentReportDate, toCronExpression } from "./digest.js";
+import { getCurrentReportDate, isTimestampFreshForReport, toCronExpression } from "./digest.js";
 import { sendDigestEmail } from "./email.js";
 import { renderDailyReportMarkdown, saveReportMarkdown } from "./report.js";
 import { syncWechat2RssFeeds } from "./wechat2rss.js";
@@ -101,6 +101,18 @@ async function buildOverview(config: AppConfig, reportDate: string, articles: St
   }
 }
 
+function filterFreshArticlesForReport(
+  config: AppConfig,
+  reportDate: string,
+  articles: StoredArticle[],
+): StoredArticle[] {
+  return articles.filter((article) => {
+    const source = config.sources.find((item) => item.id === article.sourceId);
+    const maxAgeDays = source?.maxArticleAgeDays ?? 2;
+    return isTimestampFreshForReport(article.publishedAt, reportDate, config.schedule, maxAgeDays);
+  });
+}
+
 export async function runBootstrap(configPath?: string, headless = false): Promise<void> {
   const config = await loadConfig(pickConfigPath(configPath));
   const state = await loadState(config.dataDir);
@@ -177,7 +189,11 @@ export async function runReport(
     return state.reports[reportDate];
   }
 
-  const articles = getArticlesForReportDate(state, reportDate);
+  const articles = filterFreshArticlesForReport(
+    config,
+    reportDate,
+    getArticlesForReportDate(state, reportDate),
+  );
   const failures = getFailuresForReportDate(state, reportDate);
 
   if (articles.length === 0) {

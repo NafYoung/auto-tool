@@ -22,6 +22,7 @@ const sourceSchema = z.object({
   searchQuery: z.string().min(1).optional(),
   rssFeedUrls: z.array(z.string().url()).min(1).optional(),
   profileUrl: z.string().url().optional(),
+  maxArticleAgeDays: z.number().int().positive().max(30).default(2),
   maxArticlesPerCheck: z.number().int().positive().max(20).default(6),
   selectors: selectorsSchema,
 });
@@ -73,6 +74,7 @@ export async function loadConfig(configPath = DEFAULT_CONFIG_PATH): Promise<AppC
     id: source.id,
     accountName: source.accountName,
     seedArticleUrl: source.seedArticleUrl,
+    maxArticleAgeDays: source.maxArticleAgeDays,
     maxArticlesPerCheck: source.maxArticlesPerCheck,
     selectors: source.selectors,
     ...(source.searchQuery ? { searchQuery: source.searchQuery } : {}),

@@ -22,6 +22,7 @@
       "accountName": "数字文旅观察",
       "seedArticleUrl": "https://mp.weixin.qq.com/s/wHwabix4g8IO3YsChspkRQ",
       "searchQuery": "数字文旅观察 公众号",
+      "maxArticleAgeDays": 2,
       "rssFeedUrls": [
         "https://rsshub.app/wechat/uread/DCTA2024"
       ],
@@ -33,6 +34,7 @@
       "accountName": "上海文旅产业研究院",
       "seedArticleUrl": "https://mp.weixin.qq.com/s/x1kS-ky3jcnGeNgnQoL57A",
       "searchQuery": "上海文旅产业研究院",
+      "maxArticleAgeDays": 2,
       "rssFeedUrls": [
         "https://rsshub.app/wechat/uread/sh_act"
       ],

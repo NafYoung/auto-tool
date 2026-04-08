@@ -6,7 +6,7 @@ import {
   normalizeWeChatUrl,
   parseWeChatPublishedAt,
 } from "./pipeline.js";
-import { getReportDateForTimestamp } from "./digest.js";
+import { getReportDateForTimestamp, isTimestampFreshForReport } from "./digest.js";
 import {
   addFailureForReportDate,
   ensureSourceState,
@@ -511,7 +511,7 @@ async function collectArticleCandidatesFromSogou(
       }
     }
 
-    return Array.from(deduped.values()).slice(0, source.maxArticlesPerCheck);
+    return Array.from(deduped.values()).slice(0, source.maxArticlesPerCheck * 4);
   };
 
   let firstLooseMatches: SearchResultRow[] = [];
@@ -747,6 +747,19 @@ export async function checkSources(
             }
 
             const stored = toStoredArticle(fetched, config);
+            if (
+              !isTimestampFreshForReport(
+                stored.publishedAt,
+                reportDate,
+                config.schedule,
+                source.maxArticleAgeDays,
+              )
+            ) {
+              rememberProcessedUrl(state, source.id, candidate.url);
+              rememberProcessedUrl(state, source.id, stored.normalizedUrl);
+              continue;
+            }
+
             const result = upsertArticle(state, stored);
             rememberProcessedUrl(state, source.id, stored.normalizedUrl);
 
