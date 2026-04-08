@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import { chromium, type BrowserContext, type Page } from "playwright";
 import {
   buildContentHash,
@@ -28,11 +29,19 @@ import type {
 } from "./types.js";
 
 const WECHAT_ARTICLE_BLOCK_MARKERS = ["环境异常", "访问过于频繁"];
-const SOGOU_ANTISPIDER_MARKERS = ["请输入验证码", "访问过于频繁", "antispider"];
+const SOGOU_ANTISPIDER_MARKERS = [
+  "请输入验证码",
+  "访问过于频繁",
+  "antispider",
+  "此验证码用于确认这些请求是您的正常行为而不是自动程序发出的",
+  "请依次点击【",
+];
 const SOGOU_SEARCH_URL = "https://weixin.sogou.com/weixin?type=2&query=";
+const SOGOU_MAX_PAGES = 4;
 
 interface SearchResultRow {
   account?: string;
+  publishedAtHint?: string;
   titleHint?: string;
   url?: string;
 }
@@ -307,15 +316,64 @@ function isLikelySameAccount(candidateAccount: string | undefined, expectedAccou
   return candidate === expected || candidate.includes(expected) || expected.includes(candidate);
 }
 
-function buildSearchQueries(source: WeChatSourceConfig): string[] {
+function buildSearchQueries(
+  source: WeChatSourceConfig,
+  now = DateTime.now().setZone("Asia/Shanghai"),
+): string[] {
+  const currentYear = now.toFormat("yyyy");
   const queries = [
     source.searchQuery,
+    source.searchQuery ? `${source.searchQuery} ${currentYear}` : undefined,
     source.accountName,
+    `${source.accountName} ${currentYear}`,
     `${source.accountName} 微信`,
     `${source.accountName} 公众号`,
   ].filter((value): value is string => Boolean(value?.trim()));
 
   return Array.from(new Set(queries.map((value) => value.trim())));
+}
+
+function parseSogouResultTimestamp(
+  rawMeta: string | undefined,
+  now = DateTime.now().setZone("Asia/Shanghai"),
+): string | undefined {
+  const meta = rawMeta?.replace(/\s+/g, " ").trim();
+  if (!meta) {
+    return undefined;
+  }
+
+  const relativeDayMatch = meta.match(/(\d+)\s*天前/);
+  if (relativeDayMatch) {
+    const days = Number(relativeDayMatch[1]);
+    return now.minus({ days }).toISO() ?? undefined;
+  }
+
+  const relativeHourMatch = meta.match(/(\d+)\s*小时前/);
+  if (relativeHourMatch) {
+    const hours = Number(relativeHourMatch[1]);
+    return now.minus({ hours }).toISO() ?? undefined;
+  }
+
+  const absoluteDateMatch = meta.match(/(20\d{2})-(\d{1,2})-(\d{1,2})/);
+  if (absoluteDateMatch) {
+    const [, year, month, day] = absoluteDateMatch;
+    return (
+      DateTime.fromObject(
+      {
+        year: Number(year),
+        month: Number(month),
+        day: Number(day),
+        hour: 12,
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+      },
+      { zone: now.zoneName ?? "Asia/Shanghai" },
+    ).toISO() ?? undefined
+    );
+  }
+
+  return undefined;
 }
 
 function sameBizId(left: string | undefined, right: string | undefined): boolean {
@@ -515,45 +573,63 @@ async function collectArticleCandidatesFromSogou(
   };
 
   let firstLooseMatches: SearchResultRow[] = [];
+  const now = DateTime.now().setZone("Asia/Shanghai");
 
-  for (const query of buildSearchQueries(source)) {
-    await openPage(page, buildSogouSearchUrl(query));
+  for (const query of buildSearchQueries(source, now)) {
+    const queryMatches: SearchResultRow[] = [];
 
-    const rawCandidates = await page.evaluate(
-      ({ limit }) =>
-        Array.from(document.querySelectorAll('li[id^="sogou_vr_11002601_box_"]'))
-          .map((item) => {
-            const link = item.querySelector('a[id^="sogou_vr_11002601_title_"]');
-            const account = item
-              .querySelector(".s-p .all-time-y2")
-              ?.textContent?.replace(/\s+/g, " ")
-              .trim();
-            const titleHint = link?.textContent?.replace(/\s+/g, " ").trim() || undefined;
-            const href = link instanceof HTMLAnchorElement ? link.href : undefined;
+    for (let pageIndex = 1; pageIndex <= SOGOU_MAX_PAGES; pageIndex += 1) {
+      await openPage(page, `${buildSogouSearchUrl(query)}&page=${pageIndex}`);
 
-            return {
-              account,
-              titleHint,
-              url: href,
-            };
-          })
-          .filter((item) => Boolean(item.url))
-          .slice(0, limit * 4),
-      {
-        limit: source.maxArticlesPerCheck,
-      },
-    );
+      const rawCandidates = await page.evaluate(
+        ({ limit }) =>
+          Array.from(document.querySelectorAll('li[id^="sogou_vr_11002601_box_"]'))
+            .map((item) => {
+              const link = item.querySelector('a[id^="sogou_vr_11002601_title_"]');
+              const metaText = item
+                .querySelector(".s-p")
+                ?.textContent?.replace(/\s+/g, " ")
+                .trim();
+              const account = item
+                .querySelector(".s-p .all-time-y2")
+                ?.textContent?.replace(/\s+/g, " ")
+                .trim();
+              const titleHint = link?.textContent?.replace(/\s+/g, " ").trim() || undefined;
+              const href = link instanceof HTMLAnchorElement ? link.href : undefined;
 
-    const strictMatches = rawCandidates.filter((item) =>
+              return {
+                account,
+                titleHint,
+                url: href,
+                publishedAtHint: metaText,
+              };
+            })
+            .filter((item) => Boolean(item.url))
+            .slice(0, limit * 4),
+        {
+          limit: source.maxArticlesPerCheck,
+        },
+      );
+
+      queryMatches.push(...rawCandidates);
+    }
+
+    const strictMatches = queryMatches
+      .filter((item) =>
       isLikelySameAccount(item.account, source.accountName),
-    );
+      )
+      .sort((left, right) => {
+        const leftTime = parseSogouResultTimestamp(left.publishedAtHint, now);
+        const rightTime = parseSogouResultTimestamp(right.publishedAtHint, now);
+        return (rightTime ?? "").localeCompare(leftTime ?? "");
+      });
 
     if (strictMatches.length > 0) {
       return dedupeCandidates(strictMatches);
     }
 
     if (firstLooseMatches.length === 0) {
-      firstLooseMatches = rawCandidates;
+      firstLooseMatches = queryMatches;
     }
   }
 
@@ -798,6 +874,7 @@ export const __internal = {
   getBizIdFromProfileUrl,
   buildSogouSearchUrl,
   buildSearchQueries,
+  parseSogouResultTimestamp,
   isLikelySameAccount,
   sameBizId,
   resolveDiscoveryMethods,

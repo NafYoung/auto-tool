@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import { describe, expect, it } from "vitest";
 import { __internal } from "../src/wechat.js";
 
@@ -18,10 +19,12 @@ describe("wechat search helpers", () => {
         maxArticleAgeDays: 2,
         maxArticlesPerCheck: 6,
         selectors: {},
-      }),
+      }, DateTime.fromISO("2026-04-08T10:00:00+08:00")),
     ).toEqual([
       "数字文旅观察 公众号",
+      "数字文旅观察 公众号 2026",
       "数字文旅观察",
+      "数字文旅观察 2026",
       "数字文旅观察 微信",
     ]);
   });
@@ -78,11 +81,31 @@ describe("wechat search helpers", () => {
         maxArticleAgeDays: 2,
         maxArticlesPerCheck: 6,
         selectors: {},
-      }),
+      }, DateTime.fromISO("2026-04-08T10:00:00+08:00")),
     ).toEqual([
       "数字文旅观察 公众号",
+      "数字文旅观察 公众号 2026",
       "数字文旅观察",
+      "数字文旅观察 2026",
       "数字文旅观察 微信",
     ]);
+  });
+
+  it("parses absolute sogou result dates", () => {
+    expect(
+      __internal.parseSogouResultTimestamp(
+        "上海文旅产业研究院document.write(timeConvert('1775532719'))2026-4-7",
+        DateTime.fromISO("2026-04-08T10:00:00+08:00"),
+      ),
+    ).toBe("2026-04-07T12:00:00.000+08:00");
+  });
+
+  it("parses relative sogou result dates", () => {
+    expect(
+      __internal.parseSogouResultTimestamp(
+        "上海文旅产业研究院document.write(timeConvert('1775532719'))1天前",
+        DateTime.fromISO("2026-04-08T10:00:00+08:00"),
+      ),
+    ).toBe("2026-04-07T10:00:00.000+08:00");
   });
 });
