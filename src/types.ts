@@ -132,4 +132,5 @@ export interface FetchedArticle {
 export interface ArticleCandidate {
   url: string;
   titleHint?: string;
+  publishedAtHint?: string;
 }

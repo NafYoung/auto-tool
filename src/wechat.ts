@@ -376,6 +376,38 @@ function parseSogouResultTimestamp(
   return undefined;
 }
 
+function isSearchCandidateFresh(
+  candidate: ArticleCandidate,
+  reportDate: string,
+  config: AppConfig,
+  source: WeChatSourceConfig,
+): boolean {
+  if (!candidate.publishedAtHint) {
+    return true;
+  }
+
+  const parsed = parseSogouResultTimestamp(
+    candidate.publishedAtHint,
+    DateTime.fromISO(reportDate, { zone: config.schedule.timezone }).set({
+      hour: 12,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    }),
+  );
+
+  if (!parsed) {
+    return true;
+  }
+
+  return isTimestampFreshForReport(
+    parsed,
+    reportDate,
+    config.schedule,
+    source.maxArticleAgeDays,
+  );
+}
+
 function sameBizId(left: string | undefined, right: string | undefined): boolean {
   if (!left || !right) {
     return false;
@@ -564,6 +596,7 @@ async function collectArticleCandidatesFromSogou(
           compactOptional({
             url: candidate.url,
             titleHint: candidate.titleHint,
+            publishedAtHint: candidate.publishedAtHint,
           }),
         );
       }
@@ -811,6 +844,11 @@ export async function checkSources(
               continue;
             }
 
+            if (!isSearchCandidateFresh(candidate, reportDate, config, source)) {
+              rememberProcessedUrl(state, source.id, candidate.url);
+              continue;
+            }
+
             const fetched = await fetchArticle(
               articlePage,
               source,
@@ -875,6 +913,7 @@ export const __internal = {
   buildSogouSearchUrl,
   buildSearchQueries,
   parseSogouResultTimestamp,
+  isSearchCandidateFresh,
   isLikelySameAccount,
   sameBizId,
   resolveDiscoveryMethods,

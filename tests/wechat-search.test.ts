@@ -108,4 +108,86 @@ describe("wechat search helpers", () => {
       ),
     ).toBe("2026-04-07T10:00:00.000+08:00");
   });
+
+  it("treats recent search candidates as fresh", () => {
+    expect(
+      __internal.isSearchCandidateFresh(
+        {
+          url: "https://example.com/article",
+          publishedAtHint: "上海文旅产业研究院document.write(timeConvert('1775532719'))1天前",
+        },
+        "2026-04-08",
+        {
+          browserProfilePath: "./data/browser-profile",
+          dataDir: "./data",
+          reportDir: "./reports",
+          schedule: {
+            timezone: "Asia/Shanghai",
+            dailyReportTime: "19:00",
+          },
+          deepseek: {
+            baseUrl: "https://api.deepseek.com",
+            model: "deepseek-chat",
+            temperature: 0.3,
+            maxOutputTokens: 800,
+          },
+          email: {
+            from: "test@example.com",
+            subjectPrefix: "test",
+          },
+          sources: [],
+        },
+        {
+          id: "source",
+          accountName: "上海文旅产业研究院",
+          seedArticleUrl: "https://mp.weixin.qq.com/s/example",
+          searchQuery: "上海文旅产业研究院 2026",
+          maxArticleAgeDays: 2,
+          maxArticlesPerCheck: 6,
+          selectors: {},
+        },
+      ),
+    ).toBe(true);
+  });
+
+  it("filters stale search candidates before opening article pages", () => {
+    expect(
+      __internal.isSearchCandidateFresh(
+        {
+          url: "https://example.com/article",
+          publishedAtHint: "上海文旅产业研究院document.write(timeConvert('1775532719'))2026-3-30",
+        },
+        "2026-04-08",
+        {
+          browserProfilePath: "./data/browser-profile",
+          dataDir: "./data",
+          reportDir: "./reports",
+          schedule: {
+            timezone: "Asia/Shanghai",
+            dailyReportTime: "19:00",
+          },
+          deepseek: {
+            baseUrl: "https://api.deepseek.com",
+            model: "deepseek-chat",
+            temperature: 0.3,
+            maxOutputTokens: 800,
+          },
+          email: {
+            from: "test@example.com",
+            subjectPrefix: "test",
+          },
+          sources: [],
+        },
+        {
+          id: "source",
+          accountName: "上海文旅产业研究院",
+          seedArticleUrl: "https://mp.weixin.qq.com/s/example",
+          searchQuery: "上海文旅产业研究院 2026",
+          maxArticleAgeDays: 2,
+          maxArticlesPerCheck: 6,
+          selectors: {},
+        },
+      ),
+    ).toBe(false);
+  });
 });
