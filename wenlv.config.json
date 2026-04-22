@@ -4,7 +4,9 @@
   "reportDir": "./reports",
   "schedule": {
     "timezone": "Asia/Shanghai",
-    "dailyReportTime": "19:00"
+    "dailyReportTime": "19:00",
+    "cloudPrimarySendTime": "20:15",
+    "localFallbackSendTime": "20:30"
   },
   "deepseek": {
     "baseUrl": "https://api.deepseek.com",
@@ -13,7 +15,7 @@
     "maxOutputTokens": 800
   },
   "email": {
-    "from": "文旅公众号日报 <2807434405@qq.com>",
+    "from": "文旅公众号日报 <replace-me@example.com>",
     "subjectPrefix": "文旅公众号日报"
   },
   "sources": [

@@ -2,25 +2,58 @@
 
 set -euo pipefail
 
-PROJECT_DIR="/Users/nafyoung/Documents/Codex Project/文旅新闻总结"
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 LABEL="com.nafyoung.wenlv-news-digest"
 PLIST_PATH="${HOME}/Library/LaunchAgents/${LABEL}.plist"
 WRAPPER_DIR="${HOME}/.codex/launchd-wrappers/wenlv-news-digest"
 WRAPPER_PATH="${WRAPPER_DIR}/run.sh"
-ASCII_PROJECT_LINK="${WRAPPER_DIR}/project"
+WRAPPER_RUNNER_PATH="${WRAPPER_DIR}/runtime-run.sh"
+RUNTIME_ROOT="${HOME}/.codex/automation-runtimes/wenlv-news-digest"
 LOG_DIR="${PROJECT_DIR}/logs"
 ENV_TEMPLATE="${PROJECT_DIR}/wenlv.launchd.env.example"
 ENV_EXAMPLE_PATH="${HOME}/.config/wenlv-news-digest.env.example"
 USER_ID="$(id -u)"
+REMOTE_PUSH_URL="$(git -C "${PROJECT_DIR}" remote get-url origin)"
+CONFIG_PATH="${PROJECT_DIR}/wenlv.config.json"
+
+if [[ -f "${PROJECT_DIR}/wenlv.config.local.json" ]]; then
+  CONFIG_PATH="${PROJECT_DIR}/wenlv.config.local.json"
+fi
+
+if [[ "${REMOTE_PUSH_URL}" == git@github.com:* ]]; then
+  REMOTE_READ_URL="https://github.com/${REMOTE_PUSH_URL#git@github.com:}"
+elif [[ "${REMOTE_PUSH_URL}" == https://github.com/* ]]; then
+  REMOTE_READ_URL="${REMOTE_PUSH_URL}"
+else
+  echo "Unsupported origin remote for automation runtime: ${REMOTE_PUSH_URL}" >&2
+  exit 1
+fi
+
+SHARED_BROWSER_PROFILE_PATH="$(
+  node --input-type=module - "${CONFIG_PATH}" <<'EOF'
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
+const [, , configPath] = process.argv;
+const config = JSON.parse(readFileSync(configPath, "utf8"));
+const inputPath = config.browserProfilePath ?? "./data/browser-profile";
+console.log(path.isAbsolute(inputPath) ? inputPath : path.resolve(path.dirname(configPath), inputPath));
+EOF
+)"
 
 mkdir -p "${HOME}/Library/LaunchAgents" "${HOME}/.config" "${WRAPPER_DIR}" "${PROJECT_DIR}/logs"
-ln -sfn "${PROJECT_DIR}" "${ASCII_PROJECT_LINK}"
+cp "${PROJECT_DIR}/scripts/run-local-fallback-runtime.sh" "${WRAPPER_RUNNER_PATH}"
+chmod +x "${WRAPPER_RUNNER_PATH}"
 
 cat > "${WRAPPER_PATH}" <<EOF
 #!/bin/zsh
 set -euo pipefail
-PROJECT_DIR="${ASCII_PROJECT_LINK}"
 ENV_FILE="${HOME}/.config/wenlv-news-digest.env"
+export WENLV_RUNTIME_ROOT="${RUNTIME_ROOT}"
+export WENLV_GIT_READ_URL="${REMOTE_READ_URL}"
+export WENLV_GIT_PUSH_URL="${REMOTE_PUSH_URL}"
+export WENLV_SHARED_BROWSER_PROFILE_PATH="${SHARED_BROWSER_PROFILE_PATH}"
+export WENLV_SOURCE_CONFIG_PATH="${CONFIG_PATH}"
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 if [[ -f "\${ENV_FILE}" ]]; then
@@ -59,8 +92,7 @@ if [[ -z "\${NODE_BIN}" ]]; then
   exit 1
 fi
 
-cd "\${PROJECT_DIR}"
-exec "\${NODE_BIN}" "\${PROJECT_DIR}/dist/cli.js" run-daily --once --headed --discovery-mode search-only
+exec "${WRAPPER_RUNNER_PATH}"
 EOF
 
 chmod +x "${WRAPPER_PATH}"
@@ -88,9 +120,9 @@ cat > "${PLIST_PATH}" <<EOF
   <key>StartCalendarInterval</key>
   <dict>
     <key>Hour</key>
-    <integer>19</integer>
+    <integer>20</integer>
     <key>Minute</key>
-    <integer>0</integer>
+    <integer>30</integer>
   </dict>
   <key>StandardOutPath</key>
   <string>${LOG_DIR}/launchd.stdout.log</string>
@@ -105,6 +137,7 @@ launchctl bootstrap "gui/${USER_ID}" "${PLIST_PATH}"
 launchctl enable "gui/${USER_ID}/${LABEL}"
 
 echo "launchd agent installed: ${PLIST_PATH}"
-echo "Daily schedule: 19:00 Asia/Shanghai"
+echo "Daily schedule: 20:30 Asia/Shanghai"
 echo "ASCII launchd wrapper: ${WRAPPER_PATH}"
+echo "Automation runtime root: ${RUNTIME_ROOT}"
 echo "If env vars are not yet persisted, add them to ~/.config/wenlv-news-digest.env using ${ENV_EXAMPLE_PATH}."

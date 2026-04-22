@@ -4,7 +4,9 @@
   "reportDir": "./reports",
   "schedule": {
     "timezone": "Asia/Shanghai",
-    "dailyReportTime": "19:00"
+    "dailyReportTime": "19:00",
+    "cloudPrimarySendTime": "20:15",
+    "localFallbackSendTime": "20:30"
   },
   "deepseek": {
     "baseUrl": "https://api.deepseek.com",

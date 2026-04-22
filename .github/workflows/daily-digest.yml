@@ -1,6 +1,8 @@
 name: Daily Digest
 
 on:
+  schedule:
+    - cron: "15 12 * * *"
   workflow_dispatch:
 
 permissions:
@@ -21,6 +23,7 @@ jobs:
       SMTP_USER: ${{ secrets.SMTP_USER }}
       SMTP_PASS: ${{ secrets.SMTP_PASS }}
       MAIL_TO: ${{ secrets.MAIL_TO }}
+      MAIL_FROM: ${{ secrets.MAIL_FROM }}
 
     steps:
       - name: Checkout
@@ -44,9 +47,7 @@ jobs:
         run: npm run build
 
       - name: Run daily digest once
-        id: digest
-        continue-on-error: true
-        run: node dist/cli.js run-daily --once --strict-failures --discovery-mode rss-only --config wenlv.config.json
+        run: node dist/cli.js run-daily --once --delivery-origin cloud --discovery-mode rss-only --config wenlv.config.json
 
       - name: Persist state and reports
         if: always()
@@ -64,7 +65,3 @@ jobs:
           fi
           git commit -m "chore: update digest state"
           git push origin "HEAD:${GITHUB_REF_NAME}"
-
-      - name: Fail workflow when digest step has source errors
-        if: steps.digest.outcome != 'success'
-        run: exit 1

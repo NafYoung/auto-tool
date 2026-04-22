@@ -9,6 +9,8 @@ const config: AppConfig = {
   schedule: {
     timezone: "Asia/Shanghai",
     dailyReportTime: "19:00",
+    cloudPrimarySendTime: "20:15",
+    localFallbackSendTime: "20:30",
   },
   deepseek: {
     baseUrl: "https://api.deepseek.com",
@@ -39,5 +41,18 @@ describe("config runtime validation", () => {
 
     expect(runtime.to).toBe("to@example.com");
     expect(runtime.port).toBe(465);
+  });
+
+  it("prefers MAIL_FROM over config email.from when provided", () => {
+    const runtime = resolveEmailRuntime(config, {
+      SMTP_HOST: "smtp.example.com",
+      SMTP_PORT: "465",
+      SMTP_USER: "user",
+      SMTP_PASS: "pass",
+      MAIL_TO: "to@example.com",
+      MAIL_FROM: "custom@example.com",
+    });
+
+    expect(runtime.from).toBe("custom@example.com");
   });
 });

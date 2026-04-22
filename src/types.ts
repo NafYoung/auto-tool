@@ -7,6 +7,7 @@ export interface SourceSelectors {
 }
 
 export type DiscoveryMode = "hybrid" | "rss-only" | "search-only";
+export type DeliveryOrigin = "cloud" | "local";
 
 export interface WeChatSourceConfig {
   id: string;
@@ -23,6 +24,8 @@ export interface WeChatSourceConfig {
 export interface ScheduleConfig {
   timezone: string;
   dailyReportTime: string;
+  cloudPrimarySendTime: string;
+  localFallbackSendTime: string;
 }
 
 export interface DeepSeekConfig {
@@ -99,9 +102,11 @@ export interface StoredReport {
   emailedAt?: string;
   markdownPath?: string;
   articleUrls: string[];
+  articleKeys?: string[];
   failureCount: number;
   skipped: boolean;
   overview?: string;
+  deliveryOrigin?: DeliveryOrigin;
 }
 
 export interface AppState {

@@ -4,6 +4,7 @@ playwright-report
 test-results
 .DS_Store
 
+wenlv.config.local.json
 data/state.json
 data/browser-profile
 reports/*.md

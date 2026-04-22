@@ -35,6 +35,44 @@ describe("wechat search helpers", () => {
     expect(__internal.isLikelySameAccount("别的公众号", "数字文旅观察")).toBe(false);
   });
 
+  it("keeps signed wechat url for delivery when sn is unavailable", () => {
+    expect(
+      __internal.buildStoredArticleUrls(
+        "https://mp.weixin.qq.com/s?src=11&timestamp=1775640894&ver=6648&signature=abc123&new=1",
+        `
+          <script>
+            var biz = "MzI2NDE1MDQ1OA==";
+            var sn = "";
+            var mid = "2247507439";
+            var idx = "2";
+          </script>
+        `,
+      ),
+    ).toEqual({
+      url: "https://mp.weixin.qq.com/s?src=11&timestamp=1775640894&ver=6648&signature=abc123&new=1",
+      normalizedUrl: "https://mp.weixin.qq.com/s?__biz=MzI2NDE1MDQ1OA%3D%3D&mid=2247507439&idx=2",
+    });
+  });
+
+  it("prefers canonical wechat url when sn is available", () => {
+    expect(
+      __internal.buildStoredArticleUrls(
+        "https://mp.weixin.qq.com/s?src=11&timestamp=1775640894&ver=6648&signature=abc123&new=1",
+        `
+          <script>
+            var biz = "MzI2NDE1MDQ1OA==";
+            var sn = "deadbeef";
+            var mid = "2247507439";
+            var idx = "2";
+          </script>
+        `,
+      ),
+    ).toEqual({
+      url: "https://mp.weixin.qq.com/s?__biz=MzI2NDE1MDQ1OA%3D%3D&mid=2247507439&idx=2&sn=deadbeef",
+      normalizedUrl: "https://mp.weixin.qq.com/s?__biz=MzI2NDE1MDQ1OA%3D%3D&mid=2247507439&idx=2&sn=deadbeef",
+    });
+  });
+
   it("uses only feed discovery in rss-only mode", () => {
     expect(
       __internal.resolveDiscoveryMethods(
@@ -124,6 +162,8 @@ describe("wechat search helpers", () => {
           schedule: {
             timezone: "Asia/Shanghai",
             dailyReportTime: "19:00",
+            cloudPrimarySendTime: "20:15",
+            localFallbackSendTime: "20:30",
           },
           deepseek: {
             baseUrl: "https://api.deepseek.com",
@@ -165,6 +205,8 @@ describe("wechat search helpers", () => {
           schedule: {
             timezone: "Asia/Shanghai",
             dailyReportTime: "19:00",
+            cloudPrimarySendTime: "20:15",
+            localFallbackSendTime: "20:30",
           },
           deepseek: {
             baseUrl: "https://api.deepseek.com",

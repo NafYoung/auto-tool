@@ -1,9 +1,12 @@
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import type { AppConfig } from "./types.js";
 
-export const DEFAULT_CONFIG_PATH = "wenlv.config.json";
+export const PUBLIC_CONFIG_PATH = "wenlv.config.json";
+export const LOCAL_CONFIG_PATH = "wenlv.config.local.json";
+export const DEFAULT_CONFIG_PATH = PUBLIC_CONFIG_PATH;
 
 const selectorsSchema = z
   .object({
@@ -34,6 +37,8 @@ const configSchema = z.object({
   schedule: z.object({
     timezone: z.string().default("Asia/Shanghai"),
     dailyReportTime: z.string().regex(/^\d{2}:\d{2}$/),
+    cloudPrimarySendTime: z.string().regex(/^\d{2}:\d{2}$/).default("20:15"),
+    localFallbackSendTime: z.string().regex(/^\d{2}:\d{2}$/).default("20:30"),
   }),
   deepseek: z.object({
     baseUrl: z.string().url().default("https://api.deepseek.com"),
@@ -53,6 +58,11 @@ export function resolveConfigPath(configPath: string): string {
   return path.isAbsolute(configPath)
     ? configPath
     : path.resolve(process.cwd(), configPath);
+}
+
+export function resolveDefaultConfigPath(cwd = process.cwd()): string {
+  const localConfigPath = path.resolve(cwd, LOCAL_CONFIG_PATH);
+  return existsSync(localConfigPath) ? LOCAL_CONFIG_PATH : PUBLIC_CONFIG_PATH;
 }
 
 function resolveMaybeRelativePath(baseDir: string, inputPath: string): string {
@@ -155,6 +165,7 @@ export function resolveEmailRuntime(
     env,
   );
   const to = config.email.to ?? env.MAIL_TO?.trim();
+  const from = env.MAIL_FROM?.trim() || config.email.from;
 
   if (!to) {
     throw new Error("缺少收件人配置: 请在 MAIL_TO 环境变量或配置文件 email.to 中提供。");
@@ -172,7 +183,7 @@ export function resolveEmailRuntime(
     user: SMTP_USER,
     pass: SMTP_PASS,
     to,
-    from: config.email.from,
+    from,
     subjectPrefix: config.email.subjectPrefix,
   };
 }

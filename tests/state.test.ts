@@ -62,4 +62,25 @@ describe("state upsert", () => {
     expect(next.article.discoveredAt).toBe("2026-04-01T18:00:00+08:00");
     expect(next.article.reportDate).toBe("2026-04-01");
   });
+
+  it("allows a later recrawl to move an article into an earlier report date", () => {
+    const state = createEmptyState();
+    upsertArticle(
+      state,
+      buildArticle({
+        discoveredAt: "2026-04-09T19:15:00+08:00",
+        reportDate: "2026-04-10",
+      }),
+    );
+    const next = upsertArticle(
+      state,
+      buildArticle({
+        discoveredAt: "2026-04-09T19:30:00+08:00",
+        reportDate: "2026-04-09",
+      }),
+    );
+
+    expect(next.article.discoveredAt).toBe("2026-04-09T19:15:00+08:00");
+    expect(next.article.reportDate).toBe("2026-04-09");
+  });
 });

@@ -110,7 +110,8 @@ export function upsertArticle(
     ...existing,
     ...article,
     discoveredAt: existing.discoveredAt,
-    reportDate: existing.reportDate,
+    reportDate:
+      article.reportDate < existing.reportDate ? article.reportDate : existing.reportDate,
     summaryStatus: contentChanged ? "pending" : existing.summaryStatus,
   };
 

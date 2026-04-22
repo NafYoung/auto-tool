@@ -3,12 +3,18 @@ import { DateTime } from "luxon";
 import {
   DEFAULT_CONFIG_PATH,
   loadConfig,
+  resolveDefaultConfigPath,
   resolveDeepSeekRuntime,
   resolveEmailRuntime,
   resolveWechat2RssRuntime,
 } from "./config.js";
 import { summarizeArticle, summarizeOverview } from "./deepseek.js";
-import { getCurrentReportDate, isTimestampFreshForReport, toCronExpression } from "./digest.js";
+import {
+  getCurrentReportDate,
+  getLatestDueReportDate,
+  isTimestampFreshForReport,
+  toCronExpression,
+} from "./digest.js";
 import { sendDigestEmail } from "./email.js";
 import { renderDailyReportMarkdown, saveReportMarkdown } from "./report.js";
 import { syncWechat2RssFeeds } from "./wechat2rss.js";
@@ -23,6 +29,7 @@ import { bootstrapSources, checkSources } from "./wechat.js";
 import type {
   AppConfig,
   AppState,
+  DeliveryOrigin,
   DiscoveryMode,
   ReportFailure,
   StoredArticle,
@@ -30,7 +37,7 @@ import type {
 } from "./types.js";
 
 function pickConfigPath(configPath?: string): string {
-  return configPath ?? DEFAULT_CONFIG_PATH;
+  return configPath ?? resolveDefaultConfigPath();
 }
 
 function normalizeDiscoveryMode(input?: string): DiscoveryMode | undefined {
@@ -45,6 +52,18 @@ function normalizeDiscoveryMode(input?: string): DiscoveryMode | undefined {
   throw new Error(`discoveryMode 非法: ${input}。可选值: hybrid, rss-only, search-only`);
 }
 
+function normalizeDeliveryOrigin(input?: string): DeliveryOrigin | undefined {
+  if (!input) {
+    return undefined;
+  }
+
+  if (input === "cloud" || input === "local") {
+    return input;
+  }
+
+  throw new Error(`deliveryOrigin 非法: ${input}。可选值: cloud, local`);
+}
+
 export function ensureNoSourceFailures(
   failures: ReportFailure[],
   strictFailures = false,
@@ -57,6 +76,65 @@ export function ensureNoSourceFailures(
   throw new Error(
     `本次抓取存在 ${failures.length} 个来源异常，已中止日报发送：${sourceNames.join("、")}`,
   );
+}
+
+export function shouldSkipEmailBecauseAlreadyMarked(args: {
+  alreadySent?: string;
+  sendEmail?: boolean;
+  force?: boolean;
+  markAsSent?: boolean;
+}): boolean {
+  return Boolean(args.alreadySent && args.sendEmail && args.markAsSent && !args.force);
+}
+
+export function shouldSkipLocalFallback(args: {
+  existingReport?: StoredReport;
+  deliveryOrigin?: DeliveryOrigin;
+}): boolean {
+  return Boolean(args.deliveryOrigin === "local" && args.existingReport?.emailedAt);
+}
+
+export function resolvePersistedEmailedAt(args: {
+  existingEmailedAt?: string;
+  sendEmail?: boolean;
+  markAsSent?: boolean;
+  sentAt?: string;
+}): string | undefined {
+  if (args.sendEmail && args.markAsSent && args.sentAt) {
+    return args.sentAt;
+  }
+
+  return args.existingEmailedAt;
+}
+
+export function resolvePersistedDeliveryOrigin(args: {
+  existingDeliveryOrigin?: DeliveryOrigin;
+  sendEmail?: boolean;
+  markAsSent?: boolean;
+  deliveryOrigin?: DeliveryOrigin;
+}): DeliveryOrigin | undefined {
+  if (args.sendEmail && args.markAsSent && args.deliveryOrigin) {
+    return args.deliveryOrigin;
+  }
+
+  return args.existingDeliveryOrigin;
+}
+
+export function hasReportArticleDelta(
+  existingReport: StoredReport | undefined,
+  articles: StoredArticle[],
+): boolean {
+  if (!existingReport) {
+    return articles.length > 0;
+  }
+
+  const existingKeys = new Set(
+    existingReport.articleKeys?.length
+      ? existingReport.articleKeys
+      : existingReport.articleUrls,
+  );
+
+  return articles.some((article) => !existingKeys.has(article.normalizedUrl));
 }
 
 async function ensureArticleSummaries(
@@ -177,17 +255,15 @@ export async function runReport(
     reportDate?: string;
     sendEmail?: boolean;
     force?: boolean;
+    markAsSent?: boolean;
+    deliveryOrigin?: DeliveryOrigin;
   } = {},
 ) {
   const config = await loadConfig(pickConfigPath(options.configPath));
   const state = await loadState(config.dataDir);
   const reportDate = options.reportDate ?? getCurrentReportDate(config.schedule);
-  const alreadySent = state.reports[reportDate]?.emailedAt;
-
-  if (alreadySent && options.sendEmail && !options.force) {
-    console.log(`日报 ${reportDate} 已发送，如需重发请使用 --force。`);
-    return state.reports[reportDate];
-  }
+  const existingReport = state.reports[reportDate];
+  const alreadySent = existingReport?.emailedAt;
 
   const articles = filterFreshArticlesForReport(
     config,
@@ -196,13 +272,30 @@ export async function runReport(
   );
   const failures = getFailuresForReportDate(state, reportDate);
 
+  const hasArticleDelta = hasReportArticleDelta(existingReport, articles);
+
+  if (
+    shouldSkipEmailBecauseAlreadyMarked({
+      alreadySent,
+      sendEmail: options.sendEmail,
+      force: options.force,
+      markAsSent: options.markAsSent,
+    }) &&
+    !hasArticleDelta
+  ) {
+    console.log(`日报 ${reportDate} 已发送，如需重发请使用 --force。`);
+    return existingReport;
+  }
+
   if (articles.length === 0) {
     const skippedReport: StoredReport = {
       date: reportDate,
       generatedAt: new Date().toISOString(),
       articleUrls: [],
+      articleKeys: existingReport?.articleKeys ?? [],
       failureCount: failures.length,
       skipped: true,
+      ...(existingReport?.deliveryOrigin ? { deliveryOrigin: existingReport.deliveryOrigin } : {}),
     };
     saveReportMetadata(state, skippedReport);
     await saveState(config.dataDir, state);
@@ -221,21 +314,54 @@ export async function runReport(
   });
   const markdownPath = await saveReportMarkdown(config.reportDir, reportDate, markdown);
 
-  let emailedAt: string | undefined;
+  if (
+    alreadySent &&
+    options.sendEmail &&
+    options.markAsSent &&
+    !options.force &&
+    hasArticleDelta
+  ) {
+    const addedCount = articles.filter((article) => {
+      const existingKeys = new Set(
+        existingReport?.articleKeys?.length
+          ? existingReport.articleKeys
+          : existingReport?.articleUrls ?? [],
+      );
+      return !existingKeys.has(article.normalizedUrl);
+    }).length;
+    console.log(`日报 ${reportDate} 已发送，但检测到 ${addedCount} 篇晚到新文章，执行补发。`);
+  }
+
+  let sentAt: string | undefined;
   if (options.sendEmail) {
     await sendDigestEmail(resolveEmailRuntime(config), reportDate, markdown);
-    emailedAt = new Date().toISOString();
+    sentAt = new Date().toISOString();
   }
+
+  const emailedAt = resolvePersistedEmailedAt({
+    existingEmailedAt: alreadySent,
+    sendEmail: options.sendEmail,
+    markAsSent: options.markAsSent,
+    sentAt,
+  });
+  const deliveryOrigin = resolvePersistedDeliveryOrigin({
+    existingDeliveryOrigin: existingReport?.deliveryOrigin,
+    sendEmail: options.sendEmail,
+    markAsSent: options.markAsSent,
+    deliveryOrigin: options.deliveryOrigin,
+  });
 
   const report: StoredReport = {
     date: reportDate,
     generatedAt: new Date().toISOString(),
     articleUrls: articles.map((article) => article.url),
+    articleKeys: articles.map((article) => article.normalizedUrl),
     failureCount: failures.length,
     skipped: false,
     ...(emailedAt ? { emailedAt } : {}),
     ...(markdownPath ? { markdownPath } : {}),
     ...(overview ? { overview } : {}),
+    ...(deliveryOrigin ? { deliveryOrigin } : {}),
   };
 
   saveReportMetadata(state, report);
@@ -256,18 +382,33 @@ export async function runDaily(options: {
   discoveryMode?: string;
   once?: boolean;
   reportDate?: string;
+  deliveryOrigin?: string;
 } = {}) {
   const configPath = pickConfigPath(options.configPath);
   const config = await loadConfig(configPath);
   const headless = options.headless ?? true;
+  const deliveryOrigin = normalizeDeliveryOrigin(options.deliveryOrigin) ?? "local";
 
   const executeOnce = async () => {
+    const dueReportDate = options.reportDate ?? getLatestDueReportDate(config.schedule);
+    const state = await loadState(config.dataDir);
+    const existingReport = state.reports[dueReportDate];
+
+    if (shouldSkipLocalFallback({ existingReport, deliveryOrigin })) {
+      console.log(
+        `日报 ${dueReportDate} 已由 ${existingReport?.deliveryOrigin ?? "其他链路"}发送，本机兜底跳过。`,
+      );
+      return existingReport;
+    }
+
     const checkResult = await runCheck(configPath, headless, options.discoveryMode);
     ensureNoSourceFailures(checkResult.failures, options.strictFailures ?? false);
-    await runReport({
+    return runReport({
       configPath,
-      reportDate: options.reportDate ?? getCurrentReportDate(config.schedule),
+      reportDate: dueReportDate,
       sendEmail: true,
+      markAsSent: true,
+      deliveryOrigin,
     });
   };
 
@@ -280,7 +421,7 @@ export async function runDaily(options: {
   let running = false;
 
   console.log(
-    `已启动日报调度，时区 ${config.schedule.timezone}，每天 ${config.schedule.dailyReportTime} 执行。`,
+    `已启动日报调度，时区 ${config.schedule.timezone}，每天 ${config.schedule.localFallbackSendTime} 执行本机兜底。`,
   );
 
   cron.schedule(

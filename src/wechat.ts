@@ -7,7 +7,7 @@ import {
   normalizeWeChatUrl,
   parseWeChatPublishedAt,
 } from "./pipeline.js";
-import { getReportDateForTimestamp, isTimestampFreshForReport } from "./digest.js";
+import { getReportDateForLateAwareDiscovery, getReportDateForTimestamp, isTimestampFreshForReport } from "./digest.js";
 import {
   addFailureForReportDate,
   ensureSourceState,
@@ -223,6 +223,26 @@ function buildCanonicalArticleUrl(pageUrl: string, html: string): string {
   }
 
   return `https://mp.weixin.qq.com/s?${params.toString()}`;
+}
+
+function buildStoredArticleUrls(pageUrl: string, html: string): {
+  url: string;
+  normalizedUrl: string;
+} {
+  const canonicalUrl = buildCanonicalArticleUrl(pageUrl, html);
+  const normalizedUrl = normalizeWeChatUrl(canonicalUrl);
+  const identity = extractArticleIdentity(html);
+  const hasStableSn = Boolean(identity.sn?.trim());
+  const hasSignedWechatUrl =
+    pageUrl.startsWith("https://mp.weixin.qq.com/s?") &&
+    (pageUrl.includes("signature=") ||
+      pageUrl.includes("timestamp=") ||
+      pageUrl.includes("poc_token="));
+
+  return {
+    url: hasStableSn || !hasSignedWechatUrl ? canonicalUrl : normalizeWeChatUrl(pageUrl),
+    normalizedUrl,
+  };
 }
 
 function normalizeProfileUrl(rawUrl: string, pageUrl: string): string {
@@ -547,14 +567,13 @@ async function fetchArticle(page: Page, source: WeChatSourceConfig, url: string,
     throw new Error(`正文内容过短，疑似未抓取成功: ${url}`);
   }
 
-  const canonicalUrl = buildCanonicalArticleUrl(finalUrl, html);
-  const normalizedUrl = normalizeWeChatUrl(canonicalUrl);
-  const bizId = extractBizId(normalizedUrl, html);
-  const profileUrl = deriveProfileUrl(directProfileUrl, normalizedUrl, html, bizId);
+  const articleUrls = buildStoredArticleUrls(finalUrl, html);
+  const bizId = extractBizId(articleUrls.normalizedUrl, html);
+  const profileUrl = deriveProfileUrl(directProfileUrl, articleUrls.normalizedUrl, html, bizId);
 
   const fetched: FetchedArticle = {
-    url: canonicalUrl,
-    normalizedUrl,
+    url: articleUrls.url,
+    normalizedUrl: articleUrls.normalizedUrl,
     sourceId: source.id,
     sourceName: source.accountName,
     title,
@@ -742,7 +761,11 @@ function toStoredArticle(
 ): StoredArticle {
   return {
     ...fetched,
-    reportDate: getReportDateForTimestamp(fetched.discoveredAt, config.schedule),
+    reportDate: getReportDateForLateAwareDiscovery(
+      fetched.publishedAt,
+      fetched.discoveredAt,
+      config.schedule,
+    ),
     summaryStatus: "pending",
   };
 }
@@ -906,6 +929,7 @@ export async function checkSources(
 }
 
 export const __internal = {
+  buildStoredArticleUrls,
   sanitizeDerivedProfileUrl,
   isUsableProfileUrl,
   buildProfileUrlFromBizId,

@@ -11,7 +11,7 @@ export interface ReportWindow {
   end: string;
 }
 
-export function parseDailyReportTime(input: string): ReportTime {
+export function parseScheduleTime(input: string): ReportTime {
   const match = input.match(/^(\d{2}):(\d{2})$/);
 
   if (!match) {
@@ -28,8 +28,12 @@ export function parseDailyReportTime(input: string): ReportTime {
   return { hour, minute };
 }
 
+export function parseDailyReportTime(input: string): ReportTime {
+  return parseScheduleTime(input);
+}
+
 export function getCutoffForDate(date: string, schedule: ScheduleConfig): DateTime {
-  const { hour, minute } = parseDailyReportTime(schedule.dailyReportTime);
+  const { hour, minute } = parseScheduleTime(schedule.dailyReportTime);
   return DateTime.fromISO(date, { zone: schedule.timezone }).set({
     hour,
     minute,
@@ -48,7 +52,7 @@ export function getReportDateForTimestamp(
     throw new Error(`无法解析发布时间: ${timestamp}`);
   }
 
-  const cutoff = publishedAt.startOf("day").set(parseDailyReportTime(schedule.dailyReportTime));
+  const cutoff = publishedAt.startOf("day").set(parseScheduleTime(schedule.dailyReportTime));
   return (publishedAt > cutoff ? publishedAt.plus({ days: 1 }) : publishedAt).toISODate()!;
 }
 
@@ -103,8 +107,50 @@ export function getCurrentReportDate(
   return now.toISODate()!;
 }
 
+export function getLatestDueReportDate(
+  schedule: ScheduleConfig,
+  now = DateTime.now().setZone(schedule.timezone),
+): string {
+  const today = now.toISODate()!;
+  const cutoff = getCutoffForDate(today, schedule);
+
+  if (now >= cutoff) {
+    return today;
+  }
+
+  return now.minus({ days: 1 }).toISODate()!;
+}
+
+export function getReportDateForLateAwareDiscovery(
+  publishedAt: string,
+  discoveredAt: string,
+  schedule: ScheduleConfig,
+  graceMinutes = 60,
+): string {
+  const discoveredMoment = DateTime.fromISO(discoveredAt, { zone: schedule.timezone });
+
+  if (!discoveredMoment.isValid) {
+    throw new Error(`无法解析发现时间: ${discoveredAt}`);
+  }
+
+  const defaultReportDate = getReportDateForTimestamp(discoveredAt, schedule);
+  const dueReportDate = getLatestDueReportDate(schedule, discoveredMoment);
+  const cutoff = getCutoffForDate(dueReportDate, schedule);
+  const graceEnd = cutoff.plus({ minutes: graceMinutes });
+
+  if (
+    discoveredMoment > cutoff &&
+    discoveredMoment <= graceEnd &&
+    isTimestampInReportWindow(publishedAt, dueReportDate, schedule)
+  ) {
+    return dueReportDate;
+  }
+
+  return defaultReportDate;
+}
+
 export function toCronExpression(schedule: ScheduleConfig): string {
-  const { hour, minute } = parseDailyReportTime(schedule.dailyReportTime);
+  const { hour, minute } = parseScheduleTime(schedule.localFallbackSendTime);
   return `${minute} ${hour} * * *`;
 }
 
