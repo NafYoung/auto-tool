@@ -9,6 +9,7 @@ describe("feed discovery", () => {
           <item>
             <title>文章一</title>
             <link>https://mp.weixin.qq.com/s?__biz=abc&amp;mid=1&amp;idx=1</link>
+            <pubDate>Tue, 17 Mar 2026 03:31:18 GMT</pubDate>
           </item>
           <item>
             <title>文章二</title>
@@ -19,6 +20,7 @@ describe("feed discovery", () => {
 
     expect(__internal.parseFeedCandidates(xml)).toEqual([
       {
+        publishedAtHint: "Tue, 17 Mar 2026 03:31:18 GMT",
         titleHint: "文章一",
         url: "https://mp.weixin.qq.com/s?__biz=abc&mid=1&idx=1",
       },

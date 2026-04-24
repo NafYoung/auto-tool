@@ -65,6 +65,7 @@ cp wenlv.config.example.json wenlv.config.local.json
 - `npm run report -- --date YYYY-MM-DD --send-email` 默认是“测试发送”，会发邮件，但不会把这次发送记成当天正式发送。
 - 如果你希望手动补发后，系统把它视为当天正式发送，请使用 `--mark-as-sent`。
 - `run-daily` / `launchd` 触发的每日任务会自动把当天成功发送记为正式发送。
+- `run-daily` / GitHub Actions 的正式发送即使当天无新文章，也会发送一封状态邮件，便于确认无人值守链路按时运行。
 - `dailyReportTime: 19:00` 只定义日报统计窗口截止时间，不代表实际发送时间。
 - 当前默认采用“双通道”：GitHub Actions 在 `20:15` 做云端主发送，本机 `launchd` 在 `20:30` 只做兜底；如果云端已经发过，本机会直接跳过。
 
@@ -118,6 +119,7 @@ npm run sync-feeds
 - 当前仓库里的 GitHub Actions 工作流会在北京时间 `20:15` 定时执行，也支持手动触发。
 - GitHub Actions 采用“部分成功可发送”策略：只要至少一个源抓到新文章，就会发送日报；失败源会写进“抓取异常”段落，但不再整体阻断发信。
 - GitHub Actions 现在还会强制使用 `rss-only` 发现模式，不再回退到搜狗搜索，避免 headless 环境下的搜狗反爬噪音。
+- 云端 `rss-only` 模式会跳过订阅源里的 `weixin.sogou.com/link` 搜狗跳转链接，并在日报“抓取异常”段落提示；要稳定抓全文，订阅源最好直接返回 `mp.weixin.qq.com` 原文链接。
 - 工作流会把 `data/state.json` 和 `reports/*.md` 提交回仓库，确保“已处理文章”状态能跨天持久化。
 - 如果不持久化状态，第二天运行会把同一批旧文章再次算作新文章。
 

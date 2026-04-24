@@ -179,6 +179,14 @@ async function buildOverview(config: AppConfig, reportDate: string, articles: St
   }
 }
 
+function buildEmptyStatusOverview(failures: ReportFailure[]): string {
+  if (failures.length > 0) {
+    return "今天没有发现符合条件的新文章；下方保留了抓取异常，便于确认系统已运行并排查内容源。";
+  }
+
+  return "今天没有发现符合条件的新文章。";
+}
+
 function filterFreshArticlesForReport(
   config: AppConfig,
   reportDate: string,
@@ -287,24 +295,14 @@ export async function runReport(
     return existingReport;
   }
 
-  if (articles.length === 0) {
-    const skippedReport: StoredReport = {
-      date: reportDate,
-      generatedAt: new Date().toISOString(),
-      articleUrls: [],
-      articleKeys: existingReport?.articleKeys ?? [],
-      failureCount: failures.length,
-      skipped: true,
-      ...(existingReport?.deliveryOrigin ? { deliveryOrigin: existingReport.deliveryOrigin } : {}),
-    };
-    saveReportMetadata(state, skippedReport);
-    await saveState(config.dataDir, state);
-    console.log(`日报 ${reportDate} 无新文章，已记录跳过结果。`);
-    return skippedReport;
+  if (articles.length > 0) {
+    await ensureArticleSummaries(config, state, articles);
   }
 
-  await ensureArticleSummaries(config, state, articles);
-  const overview = await buildOverview(config, reportDate, articles);
+  const overview =
+    articles.length > 0
+      ? await buildOverview(config, reportDate, articles)
+      : buildEmptyStatusOverview(failures);
   const markdown = renderDailyReportMarkdown({
     config,
     reportDate,

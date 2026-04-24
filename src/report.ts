@@ -45,6 +45,11 @@ export function renderDailyReportMarkdown(args: {
     lines.push("");
   }
 
+  if (articles.length === 0) {
+    lines.push("暂无新文章。");
+    lines.push("");
+  }
+
   if (failures.length > 0) {
     lines.push("## 抓取异常");
     lines.push("");

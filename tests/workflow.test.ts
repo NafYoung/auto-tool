@@ -1,13 +1,80 @@
-import { describe, expect, it } from "vitest";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../src/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/config.js")>();
+  return {
+    ...actual,
+    loadConfig: vi.fn(),
+    resolveEmailRuntime: vi.fn(() => ({
+      host: "smtp.example.com",
+      port: 465,
+      user: "user",
+      pass: "pass",
+      to: "to@example.com",
+      from: "digest@example.com",
+      subjectPrefix: "日报",
+    })),
+  };
+});
+
+vi.mock("../src/email.js", () => ({
+  sendDigestEmail: vi.fn(async () => undefined),
+}));
+
+import { loadConfig } from "../src/config.js";
+import { sendDigestEmail } from "../src/email.js";
 import {
   ensureNoSourceFailures,
   hasReportArticleDelta,
   resolvePersistedDeliveryOrigin,
   resolvePersistedEmailedAt,
+  runReport,
   shouldSkipLocalFallback,
   shouldSkipEmailBecauseAlreadyMarked,
 } from "../src/workflow.js";
-import type { ReportFailure, StoredArticle, StoredReport } from "../src/types.js";
+import type { AppConfig, ReportFailure, StoredArticle, StoredReport } from "../src/types.js";
+
+const tempRoots: string[] = [];
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+afterEach(async () => {
+  while (tempRoots.length > 0) {
+    const root = tempRoots.pop()!;
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+function buildConfig(dataDir: string, reportDir: string): AppConfig {
+  return {
+    browserProfilePath: "/tmp/browser",
+    dataDir,
+    reportDir,
+    schedule: {
+      timezone: "Asia/Shanghai",
+      dailyReportTime: "19:00",
+      cloudPrimarySendTime: "20:15",
+      localFallbackSendTime: "20:30",
+    },
+    deepseek: {
+      baseUrl: "https://api.deepseek.com",
+      model: "deepseek-chat",
+      temperature: 0.3,
+      maxOutputTokens: 800,
+    },
+    email: {
+      from: "digest@example.com",
+      subjectPrefix: "日报",
+      to: "to@example.com",
+    },
+    sources: [],
+  };
+}
 
 function buildFailure(overrides: Partial<ReportFailure> = {}): ReportFailure {
   return {
@@ -99,6 +166,56 @@ describe("cloud and local delivery ownership", () => {
         deliveryOrigin: "local",
       }),
     ).toBe("local");
+  });
+});
+
+describe("empty status report delivery", () => {
+  it("sends and persists a formal status report when there are no articles", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "wenlv-empty-report-"));
+    tempRoots.push(root);
+    const config = buildConfig(path.join(root, "data"), path.join(root, "reports"));
+    vi.mocked(loadConfig).mockResolvedValue(config);
+
+    const report = await runReport({
+      configPath: "wenlv.config.json",
+      reportDate: "2026-04-23",
+      sendEmail: true,
+      markAsSent: true,
+      deliveryOrigin: "cloud",
+    });
+
+    expect(sendDigestEmail).toHaveBeenCalledTimes(1);
+    expect(sendDigestEmail).toHaveBeenCalledWith(
+      expect.anything(),
+      "2026-04-23",
+      expect.stringContaining("暂无新文章。"),
+    );
+    expect(report).toMatchObject({
+      date: "2026-04-23",
+      articleUrls: [],
+      articleKeys: [],
+      failureCount: 0,
+      skipped: false,
+      deliveryOrigin: "cloud",
+    });
+    expect(report?.emailedAt).toEqual(expect.any(String));
+    expect(report?.markdownPath).toBe(path.join(config.reportDir, "2026-04-23.md"));
+
+    const markdown = await readFile(report!.markdownPath!, "utf8");
+    expect(markdown).toContain("今天没有发现符合条件的新文章。");
+    expect(markdown).toContain("暂无新文章。");
+
+    const state = JSON.parse(
+      await readFile(path.join(config.dataDir, "state.json"), "utf8"),
+    ) as { reports: Record<string, StoredReport> };
+    expect(state.reports["2026-04-23"]).toMatchObject({
+      articleUrls: [],
+      articleKeys: [],
+      skipped: false,
+      deliveryOrigin: "cloud",
+      markdownPath: path.join(config.reportDir, "2026-04-23.md"),
+    });
+    expect(state.reports["2026-04-23"]?.emailedAt).toEqual(expect.any(String));
   });
 });
 

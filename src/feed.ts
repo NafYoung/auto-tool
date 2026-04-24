@@ -86,6 +86,15 @@ function pickEntryTitle(entry: Record<string, unknown>): string | undefined {
   return readText(entry.title) ?? readText(entry["media:title"]);
 }
 
+function pickEntryPublishedAtHint(entry: Record<string, unknown>): string | undefined {
+  return (
+    readText(entry.pubDate) ??
+    readText(entry.published) ??
+    readText(entry.updated) ??
+    readText(entry["dc:date"])
+  );
+}
+
 function parseFeedEntries(root: unknown): ArticleCandidate[] {
   if (!root || typeof root !== "object") {
     return [];
@@ -106,9 +115,13 @@ function parseFeedEntries(root: unknown): ArticleCandidate[] {
       continue;
     }
 
+    const titleHint = pickEntryTitle(entry);
+    const publishedAtHint = pickEntryPublishedAtHint(entry);
+
     deduped.set(url, {
       url,
-      ...(pickEntryTitle(entry) ? { titleHint: pickEntryTitle(entry) } : {}),
+      ...(titleHint ? { titleHint } : {}),
+      ...(publishedAtHint ? { publishedAtHint } : {}),
     });
   }
 

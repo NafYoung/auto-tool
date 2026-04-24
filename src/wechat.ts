@@ -400,6 +400,31 @@ function parseSogouResultTimestamp(
   return undefined;
 }
 
+function parseCandidateTimestampHint(
+  rawMeta: string | undefined,
+  now = DateTime.now().setZone("Asia/Shanghai"),
+): string | undefined {
+  const sogouTimestamp = parseSogouResultTimestamp(rawMeta, now);
+  if (sogouTimestamp) {
+    return sogouTimestamp;
+  }
+
+  const meta = rawMeta?.replace(/\s+/g, " ").trim();
+  if (!meta) {
+    return undefined;
+  }
+
+  const zoneName = now.zoneName ?? "Asia/Shanghai";
+  const absoluteCandidates = [
+    DateTime.fromISO(meta, { setZone: true }),
+    DateTime.fromRFC2822(meta, { setZone: true }),
+    DateTime.fromHTTP(meta, { setZone: true }),
+  ];
+  const parsed = absoluteCandidates.find((candidate) => candidate.isValid);
+
+  return parsed?.setZone(zoneName).toISO() ?? undefined;
+}
+
 function isSearchCandidateFresh(
   candidate: ArticleCandidate,
   reportDate: string,
@@ -410,7 +435,7 @@ function isSearchCandidateFresh(
     return true;
   }
 
-  const parsed = parseSogouResultTimestamp(
+  const parsed = parseCandidateTimestampHint(
     candidate.publishedAtHint,
     DateTime.fromISO(reportDate, { zone: config.schedule.timezone }).set({
       hour: 12,
@@ -430,6 +455,26 @@ function isSearchCandidateFresh(
     config.schedule,
     source.maxArticleAgeDays,
   );
+}
+
+function isSogouRedirectUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === "weixin.sogou.com" && parsed.pathname === "/link";
+  } catch {
+    return false;
+  }
+}
+
+function buildSogouRedirectSkipMessage(skippedCount: number): string {
+  return `订阅源返回 ${skippedCount} 个搜狗跳转链接，云端 rss-only 模式已跳过，避免触发搜狗反爬；请改用直接指向 mp.weixin.qq.com 的 feed。`;
+}
+
+function shouldSkipSogouRedirectCandidate(
+  candidate: ArticleCandidate,
+  discoveryMode: DiscoveryMode,
+): boolean {
+  return discoveryMode === "rss-only" && isSogouRedirectUrl(candidate.url);
 }
 
 function sameBizId(left: string | undefined, right: string | undefined): boolean {
@@ -871,11 +916,14 @@ export async function checkSources(
         };
 
         try {
+          const discoveryMode = options.discoveryMode ?? "hybrid";
           const candidates = await collectArticleCandidates(
             listPage,
             source,
-            options.discoveryMode ?? "hybrid",
+            discoveryMode,
           );
+          let skippedSogouRedirectCount = 0;
+          let fetchedCandidateCount = 0;
 
           for (const candidate of candidates) {
             if (
@@ -892,12 +940,19 @@ export async function checkSources(
               continue;
             }
 
+            if (shouldSkipSogouRedirectCandidate(candidate, discoveryMode)) {
+              skippedSogouRedirectCount += 1;
+              rememberProcessedUrl(state, source.id, candidate.url);
+              continue;
+            }
+
             const fetched = await fetchArticle(
               articlePage,
               source,
               candidate.url,
               config.schedule.timezone,
             );
+            fetchedCandidateCount += 1;
 
             if (!isArticleFromExpectedSource(fetched, source, state)) {
               continue;
@@ -926,7 +981,24 @@ export async function checkSources(
           }
 
           sourceState.lastCheckedAt = new Date().toISOString();
-          delete sourceState.lastError;
+          if (skippedSogouRedirectCount > 0) {
+            const message = buildSogouRedirectSkipMessage(skippedSogouRedirectCount);
+            const failure: ReportFailure = {
+              ...failureBase,
+              failedAt: new Date().toISOString(),
+              message,
+            };
+            addFailureForReportDate(state, reportDate, failure);
+            failures.push(failure);
+
+            if (fetchedCandidateCount === 0) {
+              sourceState.lastError = message;
+            } else {
+              delete sourceState.lastError;
+            }
+          } else {
+            delete sourceState.lastError;
+          }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           const failure: ReportFailure = {
@@ -957,7 +1029,10 @@ export const __internal = {
   buildSogouSearchUrl,
   buildSearchQueries,
   parseSogouResultTimestamp,
+  parseCandidateTimestampHint,
   isSearchCandidateFresh,
+  isSogouRedirectUrl,
+  buildSogouRedirectSkipMessage,
   isLikelySameAccount,
   sameBizId,
   resolveDiscoveryMethods,
