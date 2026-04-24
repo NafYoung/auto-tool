@@ -5,14 +5,14 @@
       "id": "digital-tourism-observer",
       "accountName": "数字文旅观察",
       "lastProcessedUrls": [],
-      "lastCheckedAt": "2026-04-24T09:48:42.041Z",
+      "lastCheckedAt": "2026-04-24T09:54:34.408Z",
       "lastError": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
     },
     "shanghai-tourism-industry-institute": {
       "id": "shanghai-tourism-industry-institute",
       "accountName": "上海文旅产业研究院",
       "lastProcessedUrls": [],
-      "lastCheckedAt": "2026-04-24T09:48:51.061Z",
+      "lastCheckedAt": "2026-04-24T09:54:42.516Z",
       "lastError": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
     }
   },
@@ -120,6 +120,18 @@
         "sourceName": "上海文旅产业研究院",
         "failedAt": "2026-04-24T09:48:42.041Z",
         "message": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
+      },
+      {
+        "sourceId": "digital-tourism-observer",
+        "sourceName": "数字文旅观察",
+        "failedAt": "2026-04-24T09:54:23.692Z",
+        "message": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
+      },
+      {
+        "sourceId": "shanghai-tourism-industry-institute",
+        "sourceName": "上海文旅产业研究院",
+        "failedAt": "2026-04-24T09:54:34.408Z",
+        "message": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
       }
     ]
   },
@@ -141,7 +153,7 @@
     },
     "2026-04-23": {
       "date": "2026-04-23",
-      "generatedAt": "2026-04-24T09:48:51.099Z",
+      "generatedAt": "2026-04-24T09:54:42.554Z",
       "articleUrls": [],
       "articleKeys": [],
       "failureCount": 2,
