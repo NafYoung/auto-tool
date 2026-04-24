@@ -5,15 +5,15 @@
       "id": "digital-tourism-observer",
       "accountName": "数字文旅观察",
       "lastProcessedUrls": [],
-      "lastCheckedAt": "2026-04-23T14:09:57.517Z",
-      "lastError": "订阅源请求失败: https://rsshub.app/wechat/uread/DCTA2024 (403)"
+      "lastCheckedAt": "2026-04-24T09:48:42.041Z",
+      "lastError": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
     },
     "shanghai-tourism-industry-institute": {
       "id": "shanghai-tourism-industry-institute",
       "accountName": "上海文旅产业研究院",
       "lastProcessedUrls": [],
-      "lastCheckedAt": "2026-04-23T14:09:57.556Z",
-      "lastError": "订阅源请求失败: https://rsshub.app/wechat/uread/sh_act (403)"
+      "lastCheckedAt": "2026-04-24T09:48:51.061Z",
+      "lastError": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
     }
   },
   "articles": {},
@@ -108,6 +108,18 @@
         "sourceName": "上海文旅产业研究院",
         "failedAt": "2026-04-23T14:09:57.517Z",
         "message": "订阅源请求失败: https://rsshub.app/wechat/uread/sh_act (403)"
+      },
+      {
+        "sourceId": "digital-tourism-observer",
+        "sourceName": "数字文旅观察",
+        "failedAt": "2026-04-24T09:48:30.890Z",
+        "message": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
+      },
+      {
+        "sourceId": "shanghai-tourism-industry-institute",
+        "sourceName": "上海文旅产业研究院",
+        "failedAt": "2026-04-24T09:48:42.041Z",
+        "message": "搜狗微信搜索触发反爬，请用 --headed 重试并在弹出的浏览器里完成验证。"
       }
     ]
   },
@@ -129,7 +141,7 @@
     },
     "2026-04-23": {
       "date": "2026-04-23",
-      "generatedAt": "2026-04-23T14:09:57.593Z",
+      "generatedAt": "2026-04-24T09:48:51.099Z",
       "articleUrls": [],
       "articleKeys": [],
       "failureCount": 2,
