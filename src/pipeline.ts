@@ -103,6 +103,7 @@ export function parseWeChatPublishedAt(
     .replace(/[年/]/g, "-")
     .replace(/月/g, "-")
     .replace(/日/g, "")
+    .replace(/^发布于\s*/i, "")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -111,6 +112,9 @@ export function parseWeChatPublishedAt(
     "yyyy-MM-dd HH:mm",
     "yyyy-M-d HH:mm:ss",
     "yyyy-M-d HH:mm",
+    "yyyy年M月d日 HH:mm:ss",
+    "yyyy年M月d日 HH:mm",
+    "yyyy年M月d日",
     "yyyy-MM-dd",
     "yyyy-M-d",
   ];

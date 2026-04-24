@@ -126,7 +126,7 @@ export async function fetchFeedCandidates(feedUrl: string): Promise<ArticleCandi
       "user-agent": "wenlv-news-digest/0.2 (+cloud-feed-mode)",
       accept: "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.1",
     },
-    signal: AbortSignal.timeout(20_000),
+    signal: AbortSignal.timeout(60_000),
   });
 
   if (!response.ok) {

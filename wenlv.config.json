@@ -26,7 +26,7 @@
       "searchQuery": "DCTA2024",
       "maxArticleAgeDays": 2,
       "rssFeedUrls": [
-        "https://rsshub.app/wechat/uread/DCTA2024"
+        "https://rsshub0424.onrender.com/wechat/sogou/DCTA2024"
       ],
       "maxArticlesPerCheck": 6,
       "selectors": {}
@@ -38,7 +38,7 @@
       "searchQuery": "上海文旅产业研究院",
       "maxArticleAgeDays": 2,
       "rssFeedUrls": [
-        "https://rsshub.app/wechat/uread/sh_act"
+        "https://rsshub0424.onrender.com/wechat/sogou/%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2"
       ],
       "maxArticlesPerCheck": 6,
       "selectors": {}

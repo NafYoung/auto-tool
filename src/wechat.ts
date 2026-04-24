@@ -1,5 +1,9 @@
 import { DateTime } from "luxon";
-import { chromium, type BrowserContext, type Page } from "playwright";
+import { chromium } from "playwright-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import type { BrowserContext, Page } from "playwright";
+
+chromium.use(StealthPlugin());
 import {
   buildContentHash,
   buildExcerpt,
@@ -510,7 +514,7 @@ async function waitForArticleReady(page: Page, source: WeChatSourceConfig): Prom
         publishSelectors,
         contentSelectors,
       },
-      { timeout: 15_000 },
+      { timeout: 30_000 },
     )
     .catch(() => undefined);
 }
@@ -525,6 +529,10 @@ export async function withWechatContext<T>(
     locale: "zh-CN",
     timezoneId: config.schedule.timezone,
     viewport: { width: 1440, height: 960 },
+    args: [
+      "--disable-blink-features=AutomationControlled",
+      "--disable-features=IsolateOrigins,site-per-process",
+    ],
   });
 
   try {
@@ -535,9 +543,13 @@ export async function withWechatContext<T>(
 }
 
 async function fetchArticle(page: Page, source: WeChatSourceConfig, url: string, timezone: string) {
+  if (url.includes("weixin.sogou.com/link")) {
+    await page.goto("https://weixin.sogou.com/", { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(2000);
+  }
   await openPage(page, url);
   if (url.includes("weixin.sogou.com/link")) {
-    await page.waitForTimeout(6_000);
+    await page.waitForTimeout(12_000);
   }
   await waitForArticleReady(page, source);
   const finalUrl = page.url();
