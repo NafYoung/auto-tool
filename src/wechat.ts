@@ -532,7 +532,15 @@ export async function withWechatContext<T>(
     args: [
       "--disable-blink-features=AutomationControlled",
       "--disable-features=IsolateOrigins,site-per-process",
+      "--no-sandbox",
     ],
+  });
+
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => false });
+    Object.defineProperty(navigator, "plugins", { get: () => [1, 2, 3, 4, 5] });
+    Object.defineProperty(navigator, "languages", { get: () => ["zh-CN", "zh", "en"] });
+    (window as any).chrome = { runtime: {} };
   });
 
   try {
