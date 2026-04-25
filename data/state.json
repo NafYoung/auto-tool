@@ -4,14 +4,26 @@
     "digital-tourism-observer": {
       "id": "digital-tourism-observer",
       "accountName": "数字文旅观察",
-      "lastProcessedUrls": [],
-      "lastCheckedAt": "2026-04-24T16:19:10.087Z",
-      "lastError": "The operation was aborted due to timeout"
+      "lastProcessedUrls": [
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb5LeOoBl2DerTciAkyZKSlSlqXa8Fplpd9BK0tvneJUzrXkbl18DG9N0q2Y5MYYYs8opjGvnjh-KKecqINWbL33VyVb_f3DkIqrxb4FkX3SG9si02lsLAUMqfB0AvfOnRlO8ZnsCouLaZlS--oiSvacuARb8JG0qIOew1n4y_OdgPY_COkkDXDi7hxYr6sGwYQ5i3fhcbZNK9r1dbZWbKUeQ..&type=2&query=DCTA2024&token=0971E6717DBC52C78E8BDEC48EAA90868E5F6A0369ECC417",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb5LeOoBl2DerTciAkyZKSlSlqXa8Fplpd9ZY5mhiOiTUMTWXY4lBI0PM4JTP0Wfj0A5jMeqABIMKfb2oV2L5vptZOTKRBye9O5K0hkbqlC0SrcKV6Bn7i1oGEnx1zVX2flLx1D2m_YyuQ094DTw6DVrii_AsEwDIyw015-8XvYWE6jSmawqNZE0_kuAYqSTKYfzB8CdFrrPB2TJmCU1UgHwQ..&type=2&query=DCTA2024&token=0971E6717DBC52C78E8BDEC48EAA90868E5F6A0369ECC417",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb5LeOoBl2DerTciAkyZKSlSlqXa8Fplpd983oiDn1A53cu4I8k2gjFWDC-D72aVfUFM0mImJ_Pvq02qG6eEHVyKOwH0DtEf87_3n_LFyCbnc2RhktbWeYhZLobXGIEsaYbzcACl65rc4OGIKbxz_hbbg1xl27pju_xjEOkLwVYsyK_kT8FH____wVrsJ2JCfDo2f1dA_g-TuNflztgI7RZ1g..&type=2&query=DCTA2024&token=0971E6717DBC52C78E8BDEC48EAA90868E5F6A0369ECC417",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb5LeOoBl2DerTciAkyZKSlSlqXa8Fplpd9HTCroxwvN-yWz-m7bqzhLoH8WOCvpF0rzBKyrKU8fuWO9PwiR1Gok9wC6MwPHRQripGm0j16MosW_cy-1Ytin_4vAmb8O-Y60zYRjfhzx6i3OpgF3bdFYuJv568HjcV-pKvraQCwDKNa11noPSGP1tRzjzRh_citbCCFdVEkjaV6VKrzu_4XKA..&type=2&query=DCTA2024&token=0971E6717DBC52C78E8BDEC48EAA90868E5F6A0369ECC417",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb5LeOoBl2DerTciAkyZKSlSlqXa8Fplpd98MOzsbiGHu39dscJTPTkT63d3M9JgaI_5aAldNHXnAD4yNqxJEPGgvJPsc39y_vx6tSVoKf7hAU0qMRJ2fnuwtm3Gl4Zw-umPk1D4aVCsE3X6zSRxED7FG7wRsY6hGHqV_euey5HtnID_9HBSfGGZfLDeMjAZRM-M4JZBZsIjbCq3X8EKMKOIA..&type=2&query=DCTA2024&token=0971E6717DBC52C78E8BDEC48EAA90868E5F6A0369ECC417",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb5LeOoBl2DerTciAkyZKSlSlqXa8Fplpd9AH9XE1efgsx6bTeCXbCdmKyd2GyJEEYTD1E7WsiQRgl6iE3wVL8f0DOsuGuUFlqSEB9FRofn-VknLyElpWqDv54pKzDngF0G0_VV0N9w4YyVHVBiXieY0Om06_k2W7VK9nDue3ruHBrirh9WN7kxYMNWR-7KvhmAd-VkCvsOTGCE8RsmObDbtQ..&type=2&query=DCTA2024&token=0971E6717DBC52C78E8BDEC48EAA90868E5F6A0369ECC417"
+      ],
+      "lastCheckedAt": "2026-04-25T13:39:40.501Z"
     },
     "shanghai-tourism-industry-institute": {
       "id": "shanghai-tourism-industry-institute",
       "accountName": "上海文旅产业研究院",
       "lastProcessedUrls": [
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb51j63g7V8iMbciAkyZKSlSlqXa8Fplpd9NfIDJ2PXo49nThqqIP9bxpI3jvIm2tZOngxx3HiKmG36x4DaNe3l8vTRgPUqez5UHM6aUBniiA5GJGYCRn5eDl6GX57YXQY7Xr_eWdQzAnDQZKZAu743Ji0QsGp8FNmVIFs-xb8TJopePFb0WIwyujl60ahmlEqLB8agQU1iE2lflztgI7RZ1g..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=097204FC38FA1582C8CE9980CBA75189C912230B69ECC41C",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb51j63g7V8iMbciAkyZKSlSlqXa8Fplpd9LGLCIFc46OkI2ceerGkbkMFdn_JZ4F3sNTHXDf7E2Wc6Wijnigygqdh0IFev-wshQ0zvVMs8zbBtGz7D9UgtUPWaMpQAg2bVVGtb6enSa9vq0pHDt_JZugpTYmkwnY7mYWS43mYdhHDweZlhN6EE_EOc_xgomGj1fbAeDn6yjYfzAjcIGepUqA..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=097204FC38FA1582C8CE9980CBA75189C912230B69ECC41C",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb51j63g7V8iMbciAkyZKSlSlqXa8Fplpd9NfIDJ2PXo49nThqqIP9bxpI3jvIm2tZOngxx3HiKmG36x4DaNe3l8gpGbyczelxisM4-kQ-YpFigTo0jhGiM-fcVFqaaVjDZejYk4zfwaXSR5CDt9ilaWevjgMZhPAwuGcQgyczZd-ukJN_3aojcfJpO5dd_0YYdP2CFkqUVWM-q3X8EKMKOIA..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=097204FC38FA1582C8CE9980CBA75189C912230B69ECC41C",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb51j63g7V8iMbciAkyZKSlSlqXa8Fplpd9NfIDJ2PXo49nThqqIP9bxpI3jvIm2tZOngxx3HiKmG36x4DaNe3l8qyJciLB8R2KA1_sCK2TAnWXTQdnJv16aG_-i0Otc7Qc_E_I5mHtN1zR4ZDXO5GRXiUaWKFusePK2Ktpzoc8yAHme5vKUCqM8WZK7b8XYhga7VicDWb0PWI6Ebq8fk9diw..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=097204FC38FA1582C8CE9980CBA75189C912230B69ECC41C",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb51j63g7V8iMbciAkyZKSlSlqXa8Fplpd9NfIDJ2PXo49nThqqIP9bxpI3jvIm2tZOngxx3HiKmG36x4DaNe3l8i6S1ZQwuHlgB4txJ45jv5p6bM88V6UDySSbLKphh1RIMoPEVOy_UWA4B5XqAVWo_ZpMHlBJ39_1hAcvBau5LZ9_qr2E_BQ3w_aG7xmlWl3eclcdFnGan5IC2Qmj7RgGwQ..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=097204FC38FA1582C8CE9980CBA75189C912230B69ECC41C",
+        "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb51j63g7V8iMbciAkyZKSlSlqXa8Fplpd9NfIDJ2PXo49nThqqIP9bxpI3jvIm2tZOngxx3HiKmG36x4DaNe3l8ij0HZ5zJvy7EcsyaKzG9C0eOZmFZo9zGWBmAxC4VXkx5fwoNeGcJawIDt-hBELql0aw05a3zRvQi5JBmgf0Qt5jg9zUUytoS4W3WH_0DaBg3ThacEJ0_z0O8fIRwtipOg..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=097204FC38FA1582C8CE9980CBA75189C912230B69ECC41C",
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS2-dmXm7jGpkALL4-ILQH1P1vZfByblYVFqXa8Fplpd9D_acQsYb7y9orPnJNwwxcaTn1ojw3F1gr7qA6_dzI44KwkctnvoBu-lrZyemJfAItV03ayLgO45OZPJJmNCh0lrzK6sAx5Wfa0ZlTLAXtXq8a1fA9d7mpPVbmvPNvAQJt-cWIv3NMUknxxCyRrF47zwF9K04uSiYKIEINbRCOMgNGbbB75bUeA..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=01F306C8C607EA7F363066012AC898453603AFD269EB97FE",
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS2-dmXm7jGpkALL4-ILQH1P1vZfByblYVFqXa8Fplpd9gvy0BE1XmajUO6_2ONmpxw6AnzfrGYseCFgRgTDowU4nKAI1RDWRTrD9t2hY7vq23J2D9pLQhtF2Qm3pikXBVrucJ9v89t8NYWuZP3r74QBGsEdNhAvEHBNZ4-0JAWhtUInQdu_J6sVYJZE3kafsnd5UxZ6Xvk6S5l9vN-5XxYvy08OLTBhW0A..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=01F306C8C607EA7F363066012AC898453603AFD269EB97FE",
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS2-dmXm7jGpkALL4-ILQH1P1vZfByblYVFqXa8Fplpd9D_acQsYb7y9orPnJNwwxcaTn1ojw3F1gr7qA6_dzI44KwkctnvoBu4wzkRVwEowotbRGW3i2hQvL5fanSJQScPM9ZemM9sRRm1w9Tigft8Fv746MwUFyJqy0hiT69X2fDOhlvx4CzE5cLX0UKSWGuC747vYkb8IMqp4HIStfVLRFkDr8IT4KYw..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=01F306C8C607EA7F363066012AC898453603AFD269EB97FE",
@@ -19,7 +31,7 @@
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS2-dmXm7jGpkALL4-ILQH1P1vZfByblYVFqXa8Fplpd9D_acQsYb7y9orPnJNwwxcaTn1ojw3F1gr7qA6_dzI44KwkctnvoBu9wXGL4cLr-immZmyAUY90ObQsimeFWkFc-hzLzQbYuy33fdz5yZSYqRElnb8C-ljC8J0ufHGS-ggXKxb4wwSIBDwpOiU39RqmomoI7Jnto0x9BdwbZ9NNoHpHkoPMgL3A..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=01F306C8C607EA7F363066012AC898453603AFD269EB97FE",
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS2-dmXm7jGpkALL4-ILQH1P1vZfByblYVFqXa8Fplpd9D_acQsYb7y9orPnJNwwxcaTn1ojw3F1gr7qA6_dzI44KwkctnvoBu_OD3M_jMLE4m7Hq0B7g_hXjeLv8P75WXpOmBJ0XVoDGSx5ewuQ6goCqhEwU5mlJ24pUngqFIfeo1QPMR9zHFK5sdwZXD5RiExM07yGA6FGZWDOTpS43Igi54z_tGSZTqA..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=01F306C8C607EA7F363066012AC898453603AFD269EB97FE"
       ],
-      "lastCheckedAt": "2026-04-24T16:19:13.765Z"
+      "lastCheckedAt": "2026-04-25T13:39:42.871Z"
     }
   },
   "articles": {},
@@ -194,6 +206,18 @@
       "skipped": false,
       "emailedAt": "2026-04-24T16:19:17.766Z",
       "markdownPath": "/home/runner/work/auto-tool/auto-tool/reports/2026-04-24.md",
+      "overview": "今天没有发现符合条件的新文章；下方保留了抓取异常，便于确认系统已运行并排查内容源。",
+      "deliveryOrigin": "cloud"
+    },
+    "2026-04-25": {
+      "date": "2026-04-25",
+      "generatedAt": "2026-04-25T13:39:45.842Z",
+      "articleUrls": [],
+      "articleKeys": [],
+      "failureCount": 3,
+      "skipped": false,
+      "emailedAt": "2026-04-25T13:39:45.842Z",
+      "markdownPath": "/home/runner/work/auto-tool/auto-tool/reports/2026-04-25.md",
       "overview": "今天没有发现符合条件的新文章；下方保留了抓取异常，便于确认系统已运行并排查内容源。",
       "deliveryOrigin": "cloud"
     }
