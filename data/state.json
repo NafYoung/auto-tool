@@ -18,7 +18,7 @@
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb5LeOoBl2DerTciAkyZKSlSlqXa8Fplpd98MOzsbiGHu39dscJTPTkT63d3M9JgaI_5aAldNHXnAD4yNqxJEPGgvJPsc39y_vx6tSVoKf7hAU0qMRJ2fnuwtm3Gl4Zw-umPk1D4aVCsE3X6zSRxED7FG7wRsY6hGHqV_euey5HtnID_9HBSfGGZfLDeMjAZRM-M4JZBZsIjbCq3X8EKMKOIA..&type=2&query=DCTA2024&token=0971E6717DBC52C78E8BDEC48EAA90868E5F6A0369ECC417",
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5mzpYPP6Wb5LeOoBl2DerTciAkyZKSlSlqXa8Fplpd9AH9XE1efgsx6bTeCXbCdmKyd2GyJEEYTD1E7WsiQRgl6iE3wVL8f0DOsuGuUFlqSEB9FRofn-VknLyElpWqDv54pKzDngF0G0_VV0N9w4YyVHVBiXieY0Om06_k2W7VK9nDue3ruHBrirh9WN7kxYMNWR-7KvhmAd-VkCvsOTGCE8RsmObDbtQ..&type=2&query=DCTA2024&token=0971E6717DBC52C78E8BDEC48EAA90868E5F6A0369ECC417"
       ],
-      "lastCheckedAt": "2026-04-27T14:26:59.342Z",
+      "lastCheckedAt": "2026-04-29T14:31:32.159Z",
       "lastError": "The operation was aborted due to timeout"
     },
     "shanghai-tourism-industry-institute": {
@@ -46,7 +46,8 @@
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS2-dmXm7jGpkALL4-ILQH1P1vZfByblYVFqXa8Fplpd9D_acQsYb7y9orPnJNwwxcaTn1ojw3F1gr7qA6_dzI44KwkctnvoBu-lrZyemJfAItV03ayLgO45OZPJJmNCh0lrzK6sAx5Wfa0ZlTLAXtXq8a1fA9d7mpPVbmvPNvAQJt-cWIv3NMUknxxCyRrF47zwF9K04uSiYKIEINbRCOMgNGbbB75bUeA..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=01F306C8C607EA7F363066012AC898453603AFD269EB97FE",
         "https://weixin.sogou.com/link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS2-dmXm7jGpkALL4-ILQH1P1vZfByblYVFqXa8Fplpd9gvy0BE1XmajUO6_2ONmpxw6AnzfrGYseCFgRgTDowU4nKAI1RDWRTrD9t2hY7vq23J2D9pLQhtF2Qm3pikXBVrucJ9v89t8NYWuZP3r74QBGsEdNhAvEHBNZ4-0JAWhtUInQdu_J6sVYJZE3kafsnd5UxZ6Xvk6S5l9vN-5XxYvy08OLTBhW0A..&type=2&query=%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2&token=01F306C8C607EA7F363066012AC898453603AFD269EB97FE"
       ],
-      "lastCheckedAt": "2026-04-27T14:27:03.111Z"
+      "lastCheckedAt": "2026-04-29T14:32:32.159Z",
+      "lastError": "The operation was aborted due to timeout"
     }
   },
   "articles": {},
@@ -194,6 +195,20 @@
         "failedAt": "2026-04-27T14:25:59.337Z",
         "message": "The operation was aborted due to timeout"
       }
+    ],
+    "2026-04-30": [
+      {
+        "sourceId": "digital-tourism-observer",
+        "sourceName": "数字文旅观察",
+        "failedAt": "2026-04-29T14:30:32.155Z",
+        "message": "The operation was aborted due to timeout"
+      },
+      {
+        "sourceId": "shanghai-tourism-industry-institute",
+        "sourceName": "上海文旅产业研究院",
+        "failedAt": "2026-04-29T14:31:32.159Z",
+        "message": "The operation was aborted due to timeout"
+      }
     ]
   },
   "reports": {
@@ -265,6 +280,18 @@
       "skipped": false,
       "emailedAt": "2026-04-27T14:27:06.839Z",
       "markdownPath": "/home/runner/work/auto-tool/auto-tool/reports/2026-04-27.md",
+      "overview": "今天没有发现符合条件的新文章。",
+      "deliveryOrigin": "cloud"
+    },
+    "2026-04-29": {
+      "date": "2026-04-29",
+      "generatedAt": "2026-04-29T14:32:34.911Z",
+      "articleUrls": [],
+      "articleKeys": [],
+      "failureCount": 0,
+      "skipped": false,
+      "emailedAt": "2026-04-29T14:32:34.911Z",
+      "markdownPath": "/home/runner/work/auto-tool/auto-tool/reports/2026-04-29.md",
       "overview": "今天没有发现符合条件的新文章。",
       "deliveryOrigin": "cloud"
     }
