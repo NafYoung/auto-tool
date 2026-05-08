@@ -73,7 +73,14 @@
       "profileUrl": "https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzI2NDE1MDQ1OA%253D%253D#wechat_redirect",
       "bizId": "MzI2NDE1MDQ1OA%3D%3D",
       "reportDate": "2026-05-08",
-      "summaryStatus": "pending"
+      "summaryStatus": "completed",
+      "summaryBullets": [
+        "上海笑果在五一期间推出国内首个城市喜剧生活节“脱友生活节”，以脱口秀为核心联动商圈、商户和文旅资源，构建“演出+体验+消费”全链条生态，为文旅消费场景创新提供实践样本。",
+        "脱口秀行业快速增长，2025年上半年演出场次同比增长54.1%，票房同比增长134.9%，30岁以下观众购票占比超52%，已成为剧场类演出第二大品类，显示年轻消费群体对情绪消费的强劲需求。",
+        "“脱友生活节”通过票根联动上海金咖联盟、丰盛里等数十家商户，并融入“五五购物节”等市级活动，实现票根互通和福利互享，将脱口秀流量转化为商圈客流量和商户营业额，放大消费乘数效应。",
+        "活动创新融合脱口秀与City Walk，打造贯穿美琪大戏院、丰盛里等地的“喜剧之路”，设置五大主题互动点位，并推出“脱友巴士”和限定公交线路，将商业空间转化为主动参与式消费场景。",
+        "线上线下协同方面，小红书提供流量扶持带动话题阅读量近10万，笑果小程序推出新用户优惠券、邀请好友解锁周边等线上活动，实现线上引流、线下转化，突破地域限制拓宽消费边界。"
+      ]
     },
     "https://mp.weixin.qq.com/s?__biz=MzI2NDE1MDQ1OA%3D%3D&mid=2247507836&idx=2": {
       "url": "https://mp.weixin.qq.com/s?src=11&timestamp=1778211080&ver=6707&signature=9vLdtBGHKKHvQi9knIH9RuFRd-hA68QkGw8tnPoRislVFMCdC9cH0BCfLq*VcSafA26QZYVsJT1DvEr5DPG6od7KRzfxVpcgRZQSJ3rixHy13kcdJI9FObRxaoNJDuGc&new=1",
@@ -91,7 +98,14 @@
       "profileUrl": "https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzI2NDE1MDQ1OA%253D%253D#wechat_redirect",
       "bizId": "MzI2NDE1MDQ1OA%3D%3D",
       "reportDate": "2026-05-08",
-      "summaryStatus": "pending"
+      "summaryStatus": "completed",
+      "summaryBullets": [
+        "上海11个元宇宙案例入选国家四部门2025年典型案例，涵盖数字人、产品及标准三大类别，凸显文旅与科技融合趋势",
+        "典型数字人案例2个，预示虚拟导游、智能交互等数字人在文旅场景的规模化应用方向",
+        "典型产品案例8个，反映沉浸式体验、虚实融合等元宇宙产品在文旅领域的创新落地",
+        "典型标准案例1个，显示文旅元宇宙标准化建设启动，为行业规范发展提供政策支撑",
+        "全国193项案例入选，上海占比5.7%，体现其在文旅元宇宙领域的领先地位与政策推动力"
+      ]
     }
   },
   "failuresByReportDate": {
@@ -449,6 +463,23 @@
       "markdownPath": "/home/runner/work/auto-tool/auto-tool/reports/2026-05-07.md",
       "overview": "今天没有发现符合条件的新文章。",
       "deliveryOrigin": "cloud"
+    },
+    "2026-05-08": {
+      "date": "2026-05-08",
+      "generatedAt": "2026-05-08T03:33:19.761Z",
+      "articleUrls": [
+        "https://mp.weixin.qq.com/s?src=11&timestamp=1778211078&ver=6707&signature=9vLdtBGHKKHvQi9knIH9RuFRd-hA68QkGw8tnPoRismO66IHi0BSvhMHzBqKIOBB4Dg2qq8eeAy3gUMxL2KVVs*fvJd4gSxaL*FoqnOprHQxe1Qzq1H7l9FncMNrGoOx&new=1",
+        "https://mp.weixin.qq.com/s?src=11&timestamp=1778211080&ver=6707&signature=9vLdtBGHKKHvQi9knIH9RuFRd-hA68QkGw8tnPoRislVFMCdC9cH0BCfLq*VcSafA26QZYVsJT1DvEr5DPG6od7KRzfxVpcgRZQSJ3rixHy13kcdJI9FObRxaoNJDuGc&new=1"
+      ],
+      "articleKeys": [
+        "https://mp.weixin.qq.com/s?__biz=MzI2NDE1MDQ1OA%3D%3D&mid=2247507836&idx=1",
+        "https://mp.weixin.qq.com/s?__biz=MzI2NDE1MDQ1OA%3D%3D&mid=2247507836&idx=2"
+      ],
+      "failureCount": 0,
+      "skipped": false,
+      "emailedAt": "2026-05-08T03:33:19.761Z",
+      "markdownPath": "/Users/nafyoung/.codex/automation-runtimes/wenlv-news-digest/repo/reports/2026-05-08.md",
+      "overview": "2026年5月8日，文旅行业迎来两大趋势：一是“脱口秀+”演艺消费新模式在上海崛起，以笑果“脱友生活节”为代表，通过票根联动、City Walk融合及线上线下协同，将脱口秀流量转化为商圈消费，凸显年轻群体对情绪消费的强劲需求；二是上海11个元宇宙案例入选国家2025年典型案例，涵盖数字人、沉浸式产品及标准化建设，彰显文旅与科技深度融合的领先地位，为行业创新提供政策支撑。"
     }
   }
 }
