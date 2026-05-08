@@ -470,11 +470,34 @@ function buildSogouRedirectSkipMessage(skippedCount: number): string {
   return `订阅源返回 ${skippedCount} 个搜狗跳转链接，云端 rss-only 模式已跳过，避免触发搜狗反爬；请改用直接指向 mp.weixin.qq.com 的 feed。`;
 }
 
+function buildContentlessFeedSkipMessage(skippedCount: number): string {
+  return `订阅源返回 ${skippedCount} 个未携带全文的链接，云端 rss-only 模式已跳过，避免再打开微信文章页；请改用 WeWe-RSS fulltext 模式或 content:encoded/description 含正文的 feed。`;
+}
+
 function shouldSkipSogouRedirectCandidate(
   candidate: ArticleCandidate,
   discoveryMode: DiscoveryMode,
 ): boolean {
   return discoveryMode === "rss-only" && isSogouRedirectUrl(candidate.url);
+}
+
+function hasUsableContentHint(candidate: ArticleCandidate): boolean {
+  return Boolean(candidate.contentHint?.trim());
+}
+
+function shouldUseFeedContentCandidate(candidate: ArticleCandidate): boolean {
+  return hasUsableContentHint(candidate) && !isSogouRedirectUrl(candidate.url);
+}
+
+function shouldSkipContentlessFeedCandidate(
+  candidate: ArticleCandidate,
+  discoveryMode: DiscoveryMode,
+): boolean {
+  return (
+    discoveryMode === "rss-only" &&
+    !isSogouRedirectUrl(candidate.url) &&
+    !hasUsableContentHint(candidate)
+  );
 }
 
 function sameBizId(left: string | undefined, right: string | undefined): boolean {
@@ -656,6 +679,58 @@ async function fetchArticle(page: Page, source: WeChatSourceConfig, url: string,
   };
 
   return fetched;
+}
+
+function parseFeedPublishedAtHint(rawValue: string, timezone: string): string {
+  const parsed = parseCandidateTimestampHint(
+    rawValue,
+    DateTime.now().setZone(timezone),
+  );
+
+  return parsed ?? parseWeChatPublishedAt(rawValue, timezone);
+}
+
+function buildFetchedArticleFromFeedCandidate(
+  candidate: ArticleCandidate,
+  source: WeChatSourceConfig,
+  timezone: string,
+  discoveredAt = new Date().toISOString(),
+): FetchedArticle {
+  const title = candidate.titleHint?.trim();
+  if (!title) {
+    throw new Error(`订阅源缺少文章标题: ${candidate.url}`);
+  }
+
+  if (!candidate.publishedAtHint?.trim()) {
+    throw new Error(`订阅源缺少发布时间: ${candidate.url}`);
+  }
+
+  if (!candidate.contentHint?.trim()) {
+    throw new Error(`订阅源未携带全文: ${candidate.url}`);
+  }
+
+  const normalizedUrl = normalizeWeChatUrl(candidate.url);
+  const content = candidate.contentHint.trim();
+  const cleanedContent = cleanArticleContent(content);
+
+  if (cleanedContent.length < 40) {
+    throw new Error(`订阅源正文内容过短，疑似未抓取成功: ${candidate.url}`);
+  }
+
+  return {
+    url: normalizedUrl,
+    normalizedUrl,
+    sourceId: source.id,
+    sourceName: source.accountName,
+    title,
+    publishedAt: parseFeedPublishedAtHint(candidate.publishedAtHint, timezone),
+    discoveredAt,
+    content,
+    cleanedContent,
+    excerpt: buildExcerpt(cleanedContent),
+    contentHash: buildContentHash(cleanedContent),
+    accountName: candidate.accountNameHint ?? source.accountName,
+  };
 }
 
 function buildSogouSearchUrl(query: string): string {
@@ -923,6 +998,7 @@ export async function checkSources(
             discoveryMode,
           );
           let skippedSogouRedirectCount = 0;
+          let skippedContentlessFeedCount = 0;
           let fetchedCandidateCount = 0;
 
           for (const candidate of candidates) {
@@ -946,12 +1022,24 @@ export async function checkSources(
               continue;
             }
 
-            const fetched = await fetchArticle(
-              articlePage,
-              source,
-              candidate.url,
-              config.schedule.timezone,
-            );
+            if (shouldSkipContentlessFeedCandidate(candidate, discoveryMode)) {
+              skippedContentlessFeedCount += 1;
+              rememberProcessedUrl(state, source.id, candidate.url);
+              continue;
+            }
+
+            const fetched = shouldUseFeedContentCandidate(candidate)
+              ? buildFetchedArticleFromFeedCandidate(
+                candidate,
+                source,
+                config.schedule.timezone,
+              )
+              : await fetchArticle(
+                articlePage,
+                source,
+                candidate.url,
+                config.schedule.timezone,
+              );
             fetchedCandidateCount += 1;
 
             if (!isArticleFromExpectedSource(fetched, source, state)) {
@@ -981,8 +1069,15 @@ export async function checkSources(
           }
 
           sourceState.lastCheckedAt = new Date().toISOString();
+          const skipMessages: string[] = [];
           if (skippedSogouRedirectCount > 0) {
-            const message = buildSogouRedirectSkipMessage(skippedSogouRedirectCount);
+            skipMessages.push(buildSogouRedirectSkipMessage(skippedSogouRedirectCount));
+          }
+          if (skippedContentlessFeedCount > 0) {
+            skipMessages.push(buildContentlessFeedSkipMessage(skippedContentlessFeedCount));
+          }
+
+          for (const message of skipMessages) {
             const failure: ReportFailure = {
               ...failureBase,
               failedAt: new Date().toISOString(),
@@ -990,9 +1085,11 @@ export async function checkSources(
             };
             addFailureForReportDate(state, reportDate, failure);
             failures.push(failure);
+          }
 
+          if (skipMessages.length > 0) {
             if (fetchedCandidateCount === 0) {
-              sourceState.lastError = message;
+              sourceState.lastError = skipMessages.join("；");
             } else {
               delete sourceState.lastError;
             }
@@ -1028,11 +1125,14 @@ export const __internal = {
   getBizIdFromProfileUrl,
   buildSogouSearchUrl,
   buildSearchQueries,
+  buildContentlessFeedSkipMessage,
+  buildFetchedArticleFromFeedCandidate,
   parseSogouResultTimestamp,
   parseCandidateTimestampHint,
   isSearchCandidateFresh,
   isSogouRedirectUrl,
   buildSogouRedirectSkipMessage,
+  shouldSkipContentlessFeedCandidate,
   isLikelySameAccount,
   sameBizId,
   resolveDiscoveryMethods,

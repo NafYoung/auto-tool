@@ -1,4 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
+import { load } from "cheerio";
 import type { ArticleCandidate } from "./types.js";
 
 const parser = new XMLParser({
@@ -6,6 +7,7 @@ const parser = new XMLParser({
   attributeNamePrefix: "",
   trimValues: true,
 });
+const MIN_FALLBACK_CONTENT_HINT_LENGTH = 120;
 
 function asArray<T>(value: T | T[] | undefined): T[] {
   if (value === undefined) {
@@ -86,6 +88,42 @@ function pickEntryTitle(entry: Record<string, unknown>): string | undefined {
   return readText(entry.title) ?? readText(entry["media:title"]);
 }
 
+function htmlToReadableText(input: string): string | undefined {
+  const raw = input.trim();
+  if (!raw) {
+    return undefined;
+  }
+
+  const $ = load(raw);
+  $("script, style, svg, noscript").remove();
+
+  const richContent = $("#js_content").first();
+  const contentRoot =
+    richContent.length > 0
+      ? richContent
+      : $(".rich_media_content").first().length > 0
+        ? $(".rich_media_content").first()
+        : $("article").first().length > 0
+          ? $("article").first()
+          : $("body").first();
+
+  contentRoot.find("br").replaceWith("\n");
+  contentRoot
+    .find("p, div, section, article, h1, h2, h3, h4, h5, h6, li, tr, blockquote")
+    .append("\n");
+
+  const text = contentRoot
+    .text()
+    .replace(/\u00a0/g, " ")
+    .split("\n")
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join("\n")
+    .trim();
+
+  return text || undefined;
+}
+
 function pickEntryPublishedAtHint(entry: Record<string, unknown>): string | undefined {
   return (
     readText(entry.pubDate) ??
@@ -93,6 +131,33 @@ function pickEntryPublishedAtHint(entry: Record<string, unknown>): string | unde
     readText(entry.updated) ??
     readText(entry["dc:date"])
   );
+}
+
+function pickEntryAccountNameHint(entry: Record<string, unknown>): string | undefined {
+  const author = entry.author;
+  if (author && typeof author === "object" && !Array.isArray(author)) {
+    const name = readText((author as Record<string, unknown>).name);
+    if (name) {
+      return name;
+    }
+  }
+
+  return readText(author) ?? readText(entry["dc:creator"]);
+}
+
+function pickEntryContentHint(entry: Record<string, unknown>): string | undefined {
+  const explicitContent = readText(entry["content:encoded"]) ?? readText(entry.content);
+  if (explicitContent) {
+    return htmlToReadableText(explicitContent);
+  }
+
+  const fallbackContent =
+    readText(entry.description) ??
+    readText(entry.summary) ??
+    readText(entry["media:description"]);
+  const text = fallbackContent ? htmlToReadableText(fallbackContent) : undefined;
+
+  return text && text.length >= MIN_FALLBACK_CONTENT_HINT_LENGTH ? text : undefined;
 }
 
 function parseFeedEntries(root: unknown): ArticleCandidate[] {
@@ -117,11 +182,15 @@ function parseFeedEntries(root: unknown): ArticleCandidate[] {
 
     const titleHint = pickEntryTitle(entry);
     const publishedAtHint = pickEntryPublishedAtHint(entry);
+    const accountNameHint = pickEntryAccountNameHint(entry);
+    const contentHint = pickEntryContentHint(entry);
 
     deduped.set(url, {
       url,
       ...(titleHint ? { titleHint } : {}),
       ...(publishedAtHint ? { publishedAtHint } : {}),
+      ...(accountNameHint ? { accountNameHint } : {}),
+      ...(contentHint ? { contentHint } : {}),
     });
   }
 
@@ -158,4 +227,5 @@ export async function fetchFeedCandidates(feedUrl: string): Promise<ArticleCandi
 
 export const __internal = {
   parseFeedCandidates,
+  htmlToReadableText,
 };

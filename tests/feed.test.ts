@@ -47,4 +47,34 @@ describe("feed discovery", () => {
       },
     ]);
   });
+
+  it("extracts readable full text and author hints from feed content", () => {
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+      <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+        <channel>
+          <item>
+            <title>文旅新动态</title>
+            <link>https://mp.weixin.qq.com/s?__biz=abc&amp;mid=4&amp;idx=1</link>
+            <author>数字文旅观察</author>
+            <pubDate>Fri, 08 May 2026 03:30:00 GMT</pubDate>
+            <content:encoded><![CDATA[
+              <div id="js_content">
+                <p>第一段正文内容足够长，用来模拟全文 RSS 中直接携带的公众号正文。</p>
+                <p>第二段继续补充文旅行业信息，避免被当成过短内容。</p>
+              </div>
+            ]]></content:encoded>
+          </item>
+        </channel>
+      </rss>`;
+
+    expect(__internal.parseFeedCandidates(xml)).toEqual([
+      {
+        accountNameHint: "数字文旅观察",
+        contentHint: "第一段正文内容足够长，用来模拟全文 RSS 中直接携带的公众号正文。\n第二段继续补充文旅行业信息，避免被当成过短内容。",
+        publishedAtHint: "Fri, 08 May 2026 03:30:00 GMT",
+        titleHint: "文旅新动态",
+        url: "https://mp.weixin.qq.com/s?__biz=abc&mid=4&idx=1",
+      },
+    ]);
+  });
 });

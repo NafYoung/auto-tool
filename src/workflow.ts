@@ -91,7 +91,25 @@ export function shouldSkipLocalFallback(args: {
   existingReport?: StoredReport;
   deliveryOrigin?: DeliveryOrigin;
 }): boolean {
-  return Boolean(args.deliveryOrigin === "local" && args.existingReport?.emailedAt);
+  if (args.deliveryOrigin !== "local" || !args.existingReport?.emailedAt) {
+    return false;
+  }
+
+  const existingArticleCount =
+    args.existingReport.articleKeys?.length ?? args.existingReport.articleUrls.length;
+
+  if (args.existingReport.deliveryOrigin === "cloud" && existingArticleCount === 0) {
+    return false;
+  }
+
+  return true;
+}
+
+export function shouldDeferEmptyCloudReportToLocalFallback(args: {
+  deliveryOrigin?: DeliveryOrigin;
+  articleCount: number;
+}): boolean {
+  return args.deliveryOrigin === "cloud" && args.articleCount === 0;
 }
 
 export function resolvePersistedEmailedAt(args: {
@@ -401,6 +419,30 @@ export async function runDaily(options: {
 
     const checkResult = await runCheck(configPath, headless, options.discoveryMode);
     ensureNoSourceFailures(checkResult.failures, options.strictFailures ?? false);
+
+    const checkedState = await loadState(config.dataDir);
+    const articles = filterFreshArticlesForReport(
+      config,
+      dueReportDate,
+      getArticlesForReportDate(checkedState, dueReportDate),
+    );
+
+    if (
+      shouldDeferEmptyCloudReportToLocalFallback({
+        deliveryOrigin,
+        articleCount: articles.length,
+      })
+    ) {
+      console.log("云端未发现新文章，暂不发送正式空日报，等待本机兜底复核。");
+      return runReport({
+        configPath,
+        reportDate: dueReportDate,
+        sendEmail: false,
+        markAsSent: false,
+        deliveryOrigin,
+      });
+    }
+
     return runReport({
       configPath,
       reportDate: dueReportDate,

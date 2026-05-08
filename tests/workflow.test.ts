@@ -32,6 +32,7 @@ import {
   resolvePersistedDeliveryOrigin,
   resolvePersistedEmailedAt,
   runReport,
+  shouldDeferEmptyCloudReportToLocalFallback,
   shouldSkipLocalFallback,
   shouldSkipEmailBecauseAlreadyMarked,
 } from "../src/workflow.js";
@@ -132,7 +133,7 @@ describe("manual test email behavior", () => {
 });
 
 describe("cloud and local delivery ownership", () => {
-  it("skips local fallback when canonical state already shows a formal send", () => {
+  it("skips local fallback when cloud already sent an article digest", () => {
     expect(
       shouldSkipLocalFallback({
         deliveryOrigin: "local",
@@ -140,13 +141,54 @@ describe("cloud and local delivery ownership", () => {
           date: "2026-04-17",
           generatedAt: "2026-04-17T20:15:00+08:00",
           emailedAt: "2026-04-17T20:15:00+08:00",
-          articleUrls: [],
+          articleUrls: ["https://mp.weixin.qq.com/s?__biz=abc&mid=1&idx=1"],
           failureCount: 0,
           skipped: false,
           deliveryOrigin: "cloud",
         },
       }),
     ).toBe(true);
+  });
+
+  it("does not skip local fallback after a cloud empty status report", () => {
+    expect(
+      shouldSkipLocalFallback({
+        deliveryOrigin: "local",
+        existingReport: {
+          date: "2026-05-06",
+          generatedAt: "2026-05-06T20:15:00+08:00",
+          emailedAt: "2026-05-06T20:15:00+08:00",
+          articleUrls: [],
+          articleKeys: [],
+          failureCount: 0,
+          skipped: false,
+          deliveryOrigin: "cloud",
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("defers empty cloud reports so local search can verify before emailing", () => {
+    expect(
+      shouldDeferEmptyCloudReportToLocalFallback({
+        deliveryOrigin: "cloud",
+        articleCount: 0,
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldDeferEmptyCloudReportToLocalFallback({
+        deliveryOrigin: "cloud",
+        articleCount: 1,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldDeferEmptyCloudReportToLocalFallback({
+        deliveryOrigin: "local",
+        articleCount: 0,
+      }),
+    ).toBe(false);
   });
 
   it("persists the delivery origin only for formal sends", () => {

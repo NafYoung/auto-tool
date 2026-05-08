@@ -106,6 +106,7 @@ npm run sync-feeds
 当前仓库里的工作流会在北京时间 `20:15` 自动触发，也支持手动触发。
 现在工作流采用“部分成功可发送”策略：只要至少一个来源抓到新文章，就会继续生成并发送日报；失败来源只会写进“抓取异常”段落。
 现在工作流会强制使用 `rss-only` 发现模式：只走 `rssFeedUrls`，不再回退到搜狗搜索。
+云端稳定运行要求 RSS/Atom 条目携带正文；如果 feed 只给链接、不带全文，云端会跳过并把复核机会留给 20:30 的本机兜底。
 
 第一次建议手动触发：
 
@@ -122,7 +123,7 @@ npm run sync-feeds
 - `reports/YYYY-MM-DD.md`
 
 如果当天有新文章，会发邮件到 `MAIL_TO`。
-如果当天没有新文章，工作流会成功结束，但不会发空邮件。
+如果当天没有新文章，工作流会成功结束，但不会发空邮件，也不会把当天标记为已正式发送。
 如果工作流本身失败，再查看 `Run daily digest once` 的日志；单个来源失败不会再整体阻断发送。
 
 ## 6. 常见问题
@@ -143,7 +144,7 @@ npm run sync-feeds
 1. 先手动触发一次，确认是否只是临时超时
 2. 如果长期超时，把 `rsshub.app` 换成你自己的 RSSHub 实例
 3. 如果你已经部署了 Wechat2RSS，直接运行 `npm run sync-feeds`，把配置切到自己的 Wechat2RSS feed
-4. GitHub Actions 不会再回退到搜狗搜索；如果 feed 长期不稳定，就换成你自己的 RSSHub 实例或稳定第三方 feed
+4. GitHub Actions 不会再回退到搜狗搜索；如果 feed 长期不稳定，就换成你自己的 RSSHub 实例、Wechat2RSS fulltext feed 或稳定第三方全文 feed
 
 ### 6.3 为什么需要把 `data/state.json` 提交回仓库
 
