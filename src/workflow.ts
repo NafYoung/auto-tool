@@ -13,6 +13,7 @@ import {
   getCurrentReportDate,
   getLatestDueReportDate,
   isTimestampFreshForReport,
+  parseScheduleTime,
   toCronExpression,
 } from "./digest.js";
 import { sendDigestEmail } from "./email.js";
@@ -32,6 +33,7 @@ import type {
   DeliveryOrigin,
   DiscoveryMode,
   ReportFailure,
+  ScheduleConfig,
   StoredArticle,
   StoredReport,
 } from "./types.js";
@@ -110,6 +112,29 @@ export function shouldDeferEmptyCloudReportToLocalFallback(args: {
   articleCount: number;
 }): boolean {
   return args.deliveryOrigin === "cloud" && args.articleCount === 0;
+}
+
+export function shouldWaitForLocalFallbackWindow(args: {
+  deliveryOrigin?: DeliveryOrigin;
+  dueReportDate: string;
+  schedule: ScheduleConfig;
+  now?: string;
+}): boolean {
+  if (args.deliveryOrigin !== "local") {
+    return false;
+  }
+
+  const now = args.now
+    ? DateTime.fromISO(args.now, { zone: args.schedule.timezone })
+    : DateTime.now().setZone(args.schedule.timezone);
+
+  if (!now.isValid || args.dueReportDate !== now.toISODate()) {
+    return false;
+  }
+
+  const fallbackTime = parseScheduleTime(args.schedule.localFallbackSendTime);
+  const fallbackMoment = now.startOf("day").set(fallbackTime);
+  return now < fallbackMoment;
 }
 
 export function resolvePersistedEmailedAt(args: {
@@ -413,6 +438,19 @@ export async function runDaily(options: {
     if (shouldSkipLocalFallback({ existingReport, deliveryOrigin })) {
       console.log(
         `日报 ${dueReportDate} 已由 ${existingReport?.deliveryOrigin ?? "其他链路"}发送，本机兜底跳过。`,
+      );
+      return existingReport;
+    }
+
+    if (
+      shouldWaitForLocalFallbackWindow({
+        deliveryOrigin,
+        dueReportDate,
+        schedule: config.schedule,
+      })
+    ) {
+      console.log(
+        `本机兜底尚未到 ${config.schedule.localFallbackSendTime}，本轮间隔触发跳过。`,
       );
       return existingReport;
     }

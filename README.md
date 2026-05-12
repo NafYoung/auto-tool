@@ -159,11 +159,12 @@ npm run sync-feeds
 
 ## macOS 自动化
 
-项目提供了 `launchd` 安装脚本，会在当前用户下创建 `com.nafyoung.wenlv-news-digest` 定时任务，每天北京时间 `20:30` 执行本机兜底发送。
+项目提供了 `launchd` 安装脚本，会在当前用户下创建 `com.nafyoung.wenlv-news-digest` 定时任务，每天北京时间 `20:30` 执行本机兜底发送，并额外每 30 分钟补跑一次，避免 Mac 睡眠错过固定时间后完全不执行。
 
 注意：
 
 - 自动化任务会以 `headed` 模式短暂拉起浏览器窗口，以降低搜狗微信搜索反爬概率。
+- 30 分钟补跑不会重复发信；当天已有正式发送记录时，任务会按状态直接跳过。
 - 自动化任务不会直接使用你当前工作区，而是先同步 GitHub `origin/main` 到独立 automation runtime，再根据 canonical state 判断是否需要兜底发送。
 - 执行时需要当前 macOS 用户处于已登录桌面会话；如果完全退出登录，GUI 浏览器无法正常启动。
 - 白天手动执行 `report --send-email` 做联调，不会影响晚上正式发送；只有显式加 `--mark-as-sent`，才会占用当天正式发送资格。

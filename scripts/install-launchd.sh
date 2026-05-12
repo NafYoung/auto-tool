@@ -124,6 +124,8 @@ cat > "${PLIST_PATH}" <<EOF
     <key>Minute</key>
     <integer>30</integer>
   </dict>
+  <key>StartInterval</key>
+  <integer>1800</integer>
   <key>StandardOutPath</key>
   <string>${LOG_DIR}/launchd.stdout.log</string>
   <key>StandardErrorPath</key>

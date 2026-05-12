@@ -33,6 +33,7 @@ import {
   resolvePersistedEmailedAt,
   runReport,
   shouldDeferEmptyCloudReportToLocalFallback,
+  shouldWaitForLocalFallbackWindow,
   shouldSkipLocalFallback,
   shouldSkipEmailBecauseAlreadyMarked,
 } from "../src/workflow.js";
@@ -208,6 +209,54 @@ describe("cloud and local delivery ownership", () => {
         deliveryOrigin: "local",
       }),
     ).toBe("local");
+  });
+});
+
+describe("local fallback timing", () => {
+  const schedule = buildConfig("/tmp/data", "/tmp/reports").schedule;
+
+  it("waits when an interval trigger fires before today's local fallback time", () => {
+    expect(
+      shouldWaitForLocalFallbackWindow({
+        deliveryOrigin: "local",
+        dueReportDate: "2026-05-12",
+        schedule,
+        now: "2026-05-12T19:45:00+08:00",
+      }),
+    ).toBe(true);
+  });
+
+  it("runs after local fallback time for today's report", () => {
+    expect(
+      shouldWaitForLocalFallbackWindow({
+        deliveryOrigin: "local",
+        dueReportDate: "2026-05-12",
+        schedule,
+        now: "2026-05-12T20:30:00+08:00",
+      }),
+    ).toBe(false);
+  });
+
+  it("allows catch-up for an older due report date", () => {
+    expect(
+      shouldWaitForLocalFallbackWindow({
+        deliveryOrigin: "local",
+        dueReportDate: "2026-05-11",
+        schedule,
+        now: "2026-05-12T08:00:00+08:00",
+      }),
+    ).toBe(false);
+  });
+
+  it("does not delay cloud runs", () => {
+    expect(
+      shouldWaitForLocalFallbackWindow({
+        deliveryOrigin: "cloud",
+        dueReportDate: "2026-05-12",
+        schedule,
+        now: "2026-05-12T19:45:00+08:00",
+      }),
+    ).toBe(false);
   });
 });
 
