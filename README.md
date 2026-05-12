@@ -166,6 +166,7 @@ npm run sync-feeds
 - 自动化任务会以 `headed` 模式短暂拉起浏览器窗口，以降低搜狗微信搜索反爬概率。
 - 30 分钟补跑不会重复发信；当天已有正式发送记录时，任务会按状态直接跳过。
 - 自动化任务不会直接使用你当前工作区，而是先同步 GitHub `origin/main` 到独立 automation runtime，再根据 canonical state 判断是否需要兜底发送。
+- 安装脚本会把本机配置和浏览器 profile 放到 `~/.codex/automation-runtimes/wenlv-news-digest/`，避免 launchd 后台进程被 macOS 的 Documents 隐私权限拦截。
 - 执行时需要当前 macOS 用户处于已登录桌面会话；如果完全退出登录，GUI 浏览器无法正常启动。
 - 白天手动执行 `report --send-email` 做联调，不会影响晚上正式发送；只有显式加 `--mark-as-sent`，才会占用当天正式发送资格。
 
@@ -184,8 +185,8 @@ npm run uninstall-launchd
 
 日志默认写到：
 
-- `logs/launchd.stdout.log`
-- `logs/launchd.stderr.log`
+- `~/Library/Logs/wenlv-news-digest/launchd.stdout.log`
+- `~/Library/Logs/wenlv-news-digest/launchd.stderr.log`
 
 ## 目录说明
 

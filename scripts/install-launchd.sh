@@ -9,7 +9,9 @@ WRAPPER_DIR="${HOME}/.codex/launchd-wrappers/wenlv-news-digest"
 WRAPPER_PATH="${WRAPPER_DIR}/run.sh"
 WRAPPER_RUNNER_PATH="${WRAPPER_DIR}/runtime-run.sh"
 RUNTIME_ROOT="${HOME}/.codex/automation-runtimes/wenlv-news-digest"
-LOG_DIR="${PROJECT_DIR}/logs"
+RUNTIME_SOURCE_CONFIG_PATH="${RUNTIME_ROOT}/source.config.json"
+RUNTIME_BROWSER_PROFILE_PATH="${RUNTIME_ROOT}/browser-profile"
+LOG_DIR="${HOME}/Library/Logs/wenlv-news-digest"
 ENV_TEMPLATE="${PROJECT_DIR}/wenlv.launchd.env.example"
 ENV_EXAMPLE_PATH="${HOME}/.config/wenlv-news-digest.env.example"
 USER_ID="$(id -u)"
@@ -29,7 +31,7 @@ else
   exit 1
 fi
 
-SHARED_BROWSER_PROFILE_PATH="$(
+CONFIGURED_BROWSER_PROFILE_PATH="$(
   node --input-type=module - "${CONFIG_PATH}" <<'EOF'
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -40,10 +42,18 @@ const inputPath = config.browserProfilePath ?? "./data/browser-profile";
 console.log(path.isAbsolute(inputPath) ? inputPath : path.resolve(path.dirname(configPath), inputPath));
 EOF
 )"
+SHARED_BROWSER_PROFILE_PATH="${RUNTIME_BROWSER_PROFILE_PATH}"
 
-mkdir -p "${HOME}/Library/LaunchAgents" "${HOME}/.config" "${WRAPPER_DIR}" "${PROJECT_DIR}/logs"
+mkdir -p "${HOME}/Library/LaunchAgents" "${HOME}/.config" "${WRAPPER_DIR}" "${RUNTIME_ROOT}" "${LOG_DIR}"
 cp "${PROJECT_DIR}/scripts/run-local-fallback-runtime.sh" "${WRAPPER_RUNNER_PATH}"
 chmod +x "${WRAPPER_RUNNER_PATH}"
+cp "${CONFIG_PATH}" "${RUNTIME_SOURCE_CONFIG_PATH}"
+chmod 600 "${RUNTIME_SOURCE_CONFIG_PATH}"
+
+if [[ ! -d "${SHARED_BROWSER_PROFILE_PATH}" && -d "${CONFIGURED_BROWSER_PROFILE_PATH}" ]]; then
+  ditto "${CONFIGURED_BROWSER_PROFILE_PATH}" "${SHARED_BROWSER_PROFILE_PATH}"
+fi
+mkdir -p "${SHARED_BROWSER_PROFILE_PATH}"
 
 cat > "${WRAPPER_PATH}" <<EOF
 #!/bin/zsh
@@ -53,7 +63,7 @@ export WENLV_RUNTIME_ROOT="${RUNTIME_ROOT}"
 export WENLV_GIT_READ_URL="${REMOTE_READ_URL}"
 export WENLV_GIT_PUSH_URL="${REMOTE_PUSH_URL}"
 export WENLV_SHARED_BROWSER_PROFILE_PATH="${SHARED_BROWSER_PROFILE_PATH}"
-export WENLV_SOURCE_CONFIG_PATH="${CONFIG_PATH}"
+export WENLV_SOURCE_CONFIG_PATH="${RUNTIME_SOURCE_CONFIG_PATH}"
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 if [[ -f "\${ENV_FILE}" ]]; then
@@ -142,4 +152,5 @@ echo "launchd agent installed: ${PLIST_PATH}"
 echo "Daily schedule: 20:30 Asia/Shanghai"
 echo "ASCII launchd wrapper: ${WRAPPER_PATH}"
 echo "Automation runtime root: ${RUNTIME_ROOT}"
+echo "launchd logs: ${LOG_DIR}"
 echo "If env vars are not yet persisted, add them to ~/.config/wenlv-news-digest.env using ${ENV_EXAMPLE_PATH}."
