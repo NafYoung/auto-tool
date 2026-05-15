@@ -19,7 +19,8 @@ import {
   saveBootstrapMetadata,
   upsertArticle,
 } from "./state.js";
-import { fetchFeedCandidates } from "./feed.js";
+import { fetchFeedCandidates, filterCandidatesByKeywords } from "./feed.js";
+import { scrapeListCandidates, scrapeArticle } from "./scraper.js";
 import type {
   AppConfig,
   AppState,
@@ -53,14 +54,20 @@ interface SearchResultRow {
 function resolveDiscoveryMethods(
   source: WeChatSourceConfig,
   discoveryMode: DiscoveryMode,
-): Array<"feed" | "sogou"> {
-  const methods: Array<"feed" | "sogou"> = [];
+): Array<"feed" | "sogou" | "scrape"> {
+  // scrape 类型直接走爬虫，不需要其他发现方式
+  if (source.sourceType === "scrape") {
+    return ["scrape"];
+  }
+
+  const methods: Array<"feed" | "sogou" | "scrape"> = [];
 
   if (discoveryMode !== "search-only" && source.rssFeedUrls?.length) {
     methods.push("feed");
   }
 
-  if (discoveryMode !== "rss-only") {
+  // news-site 和 policy 类型不走搜狗搜索（它们不是公众号）
+  if (discoveryMode !== "rss-only" && source.sourceType !== "news-site" && source.sourceType !== "policy") {
     methods.push("sogou");
   }
 
@@ -687,7 +694,28 @@ function parseFeedPublishedAtHint(rawValue: string, timezone: string): string {
     DateTime.now().setZone(timezone),
   );
 
-  return parsed ?? parseWeChatPublishedAt(rawValue, timezone);
+  if (parsed) return parsed;
+
+  try {
+    return parseWeChatPublishedAt(rawValue, timezone);
+  } catch {
+    // parseWeChatPublishedAt 不支持 RFC2822 等格式，回退到当前时间
+    return DateTime.now().setZone(timezone).toISO() ?? new Date().toISOString();
+  }
+}
+
+function extractDateFromUrl(url: string, timezone: string): string | undefined {
+  // 从 URL 中提取日期，如 https://www.chinanews.com.cn/sh/2026/05-15/10621860.shtml
+  const match = url.match(/\/(\d{4})\/(\d{2})-(\d{2})\//);
+  if (match) {
+    const dt = DateTime.fromISO(`${match[1]}-${match[2]}-${match[3]}`, { zone: timezone }).set({
+      hour: 12, minute: 0, second: 0,
+    });
+    if (dt.isValid) {
+      return dt.toISO() ?? undefined;
+    }
+  }
+  return undefined;
 }
 
 function buildFetchedArticleFromFeedCandidate(
@@ -701,8 +729,12 @@ function buildFetchedArticleFromFeedCandidate(
     throw new Error(`订阅源缺少文章标题: ${candidate.url}`);
   }
 
-  if (!candidate.publishedAtHint?.trim()) {
-    throw new Error(`订阅源缺少发布时间: ${candidate.url}`);
+  // publishedAtHint 为空时，尝试从 URL 提取日期，最后回退到当前时间
+  let publishedAt: string;
+  if (candidate.publishedAtHint?.trim()) {
+    publishedAt = parseFeedPublishedAtHint(candidate.publishedAtHint, timezone);
+  } else {
+    publishedAt = extractDateFromUrl(candidate.url, timezone) ?? discoveredAt;
   }
 
   if (!candidate.contentHint?.trim()) {
@@ -723,7 +755,7 @@ function buildFetchedArticleFromFeedCandidate(
     sourceId: source.id,
     sourceName: source.accountName,
     title,
-    publishedAt: parseFeedPublishedAtHint(candidate.publishedAtHint, timezone),
+    publishedAt,
     discoveredAt,
     content,
     cleanedContent,
@@ -845,12 +877,19 @@ async function collectArticleCandidatesFromFeeds(
       deduped.set(candidate.url, candidate);
 
       if (deduped.size >= source.maxArticlesPerCheck) {
-        return Array.from(deduped.values());
+        break;
       }
     }
   }
 
-  return Array.from(deduped.values());
+  let results = Array.from(deduped.values());
+
+  // 关键词过滤（用于 news-site、policy 等通用新闻源）
+  if (source.keywordFilter?.length) {
+    results = filterCandidatesByKeywords(results, source.keywordFilter);
+  }
+
+  return results;
 }
 
 async function collectArticleCandidates(
@@ -860,6 +899,21 @@ async function collectArticleCandidates(
 ): Promise<ArticleCandidate[]> {
   const errors: string[] = [];
   const methods = resolveDiscoveryMethods(source, discoveryMode);
+
+  // scrape 类型直接走爬虫
+  if (methods.includes("scrape")) {
+    try {
+      const candidates = await scrapeListCandidates(source);
+      if (candidates.length > 0) {
+        return candidates;
+      }
+      errors.push("爬虫未找到文章，请检查列表页 URL。");
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+    throw new Error(errors.join("；"));
+  }
+
   const canUseFeeds = methods.includes("feed");
   const canUseSogou = methods.includes("sogou");
 
@@ -915,6 +969,11 @@ function isArticleFromExpectedSource(
   source: WeChatSourceConfig,
   state: AppState,
 ): boolean {
+  // news-site 和 policy 类型不做来源校验（它们不是公众号，没有统一的账号名）
+  if (source.sourceType === "news-site" || source.sourceType === "policy") {
+    return true;
+  }
+
   const expectedBizId = state.sources[source.id]?.bootstrap?.bizId;
   if (sameBizId(fetched.bizId, expectedBizId)) {
     return true;
@@ -1028,18 +1087,24 @@ export async function checkSources(
               continue;
             }
 
-            const fetched = shouldUseFeedContentCandidate(candidate)
-              ? buildFetchedArticleFromFeedCandidate(
+            let fetched: FetchedArticle;
+            if (source.sourceType === "scrape") {
+              // scrape 类型直接用爬虫抓取文章
+              fetched = await scrapeArticle(candidate.url, source, config.schedule.timezone);
+            } else if (shouldUseFeedContentCandidate(candidate)) {
+              fetched = buildFetchedArticleFromFeedCandidate(
                 candidate,
                 source,
                 config.schedule.timezone,
-              )
-              : await fetchArticle(
+              );
+            } else {
+              fetched = await fetchArticle(
                 articlePage,
                 source,
                 candidate.url,
                 config.schedule.timezone,
               );
+            }
             fetchedCandidateCount += 1;
 
             if (!isArticleFromExpectedSource(fetched, source, state)) {

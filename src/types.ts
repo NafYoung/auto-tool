@@ -8,16 +8,19 @@ export interface SourceSelectors {
 
 export type DiscoveryMode = "hybrid" | "rss-only" | "search-only";
 export type DeliveryOrigin = "cloud" | "local";
+export type SourceType = "wechat" | "news-site" | "policy" | "scrape";
 
 export interface WeChatSourceConfig {
   id: string;
   accountName: string;
+  sourceType?: SourceType;
   seedArticleUrl: string;
   searchQuery?: string;
   rssFeedUrls?: string[];
   profileUrl?: string;
   maxArticleAgeDays: number;
   maxArticlesPerCheck: number;
+  keywordFilter?: string[];
   selectors: SourceSelectors;
 }
 

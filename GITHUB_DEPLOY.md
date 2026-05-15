@@ -4,11 +4,9 @@
 
 ## 1. 创建 GitHub 仓库
 
-推荐仓库名：
+当前仓库地址：`git@github.com:NafYoung/auto-tool.git`
 
-- `wenlv-news-digest`
-
-要求：
+如果是首次部署到新仓库，要求：
 
 - 创建空仓库
 - 不要勾选 `README`
@@ -29,27 +27,13 @@ gh repo create wenlv-news-digest --private --source=. --remote=origin --push
 
 如果你想用网页：
 
-1. 在 GitHub 新建一个空仓库 `wenlv-news-digest`
+1. 在 GitHub 新建一个空仓库
 2. 然后在本地执行：
 
 ```bash
 git add .
 git commit -m "feat: initial wechat digest project"
 git remote add origin <你的 GitHub 仓库地址>
-git push -u origin main
-```
-
-例如：
-
-```bash
-git remote add origin git@github.com:<你的用户名>/wenlv-news-digest.git
-git push -u origin main
-```
-
-或：
-
-```bash
-git remote add origin https://github.com/<你的用户名>/wenlv-news-digest.git
 git push -u origin main
 ```
 
@@ -79,12 +63,14 @@ git push -u origin main
 - 你自己的机器上单独维护 `wenlv.config.local.json`
 - CLI 默认会按 `wenlv.config.local.json -> wenlv.config.json` 的顺序查找
 
-当前 `wenlv.config.json` 已经补了两个公众号的 `rssFeedUrls`：
+当前 `wenlv.config.json` 配置了多类数据来源：
 
-- `https://rsshub.app/wechat/uread/DCTA2024`
-- `https://rsshub.app/wechat/uread/sh_act`
+- 微信公众号：数字文旅观察、上海文旅产业研究院（搜狗搜索 + RSS）
+- 新闻网站：界面新闻·文旅、界面新闻·文化（RSS + 关键词过滤）
+- 政策门户：中国政府网·政策（RSS + 关键词过滤）
+- 行业站点：迈点、执惠（HTML 爬虫）
 
-如果你后面改成自己的 RSSHub 实例，只需要把这两个 URL 的域名替换掉即可。
+RSS 相关来源使用 `rsshub.app` 作为默认实例。如果你后面改成自己的 RSSHub 实例，只需要把 URL 的域名替换掉即可。
 
 如果你准备切到 Wechat2RSS，推荐不要手工改，直接在本地跑：
 
@@ -125,6 +111,8 @@ npm run sync-feeds
 如果当天有新文章，会发邮件到 `MAIL_TO`。
 如果当天没有新文章，工作流会成功结束，但不会发空邮件，也不会把当天标记为已正式发送。
 如果工作流本身失败，再查看 `Run daily digest once` 的日志；单个来源失败不会再整体阻断发送。
+
+注意：现在日报覆盖多个来源（公众号、新闻网站、政策门户、行业站点），单个来源抓取失败不会影响其他来源的文章入库和日报生成。
 
 ## 6. 常见问题
 

@@ -6,6 +6,11 @@ const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: "",
   trimValues: true,
+  processEntities: {
+    enabled: true,
+    maxTotalExpansions: 100000,
+    maxEntityCount: 1000,
+  },
 });
 const MIN_FALLBACK_CONTENT_HINT_LENGTH = 120;
 
@@ -200,6 +205,27 @@ function parseFeedEntries(root: unknown): ArticleCandidate[] {
 export function parseFeedCandidates(xml: string): ArticleCandidate[] {
   const parsed = parser.parse(xml);
   return parseFeedEntries(parsed);
+}
+
+export function filterCandidatesByKeywords(
+  candidates: ArticleCandidate[],
+  keywords: string[],
+): ArticleCandidate[] {
+  if (keywords.length === 0) {
+    return candidates;
+  }
+
+  return candidates.filter((candidate) => {
+    const text = [
+      candidate.titleHint ?? "",
+      candidate.contentHint ?? "",
+      candidate.accountNameHint ?? "",
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return keywords.some((kw) => text.includes(kw.toLowerCase()));
+  });
 }
 
 export async function fetchFeedCandidates(feedUrl: string): Promise<ArticleCandidate[]> {

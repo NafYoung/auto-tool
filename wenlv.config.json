@@ -2,6 +2,9 @@
   "browserProfilePath": "./data/browser-profile",
   "dataDir": "./data",
   "reportDir": "./reports",
+  "server": {
+    "port": 3457
+  },
   "schedule": {
     "timezone": "Asia/Shanghai",
     "dailyReportTime": "19:00",
@@ -21,26 +24,90 @@
   "sources": [
     {
       "id": "digital-tourism-observer",
+      "sourceType": "wechat",
       "accountName": "数字文旅观察",
       "seedArticleUrl": "https://mp.weixin.qq.com/s/wHwabix4g8IO3YsChspkRQ",
-      "searchQuery": "DCTA2024",
-      "maxArticleAgeDays": 2,
+      "searchQuery": "数字文旅观察",
+      "maxArticleAgeDays": 3,
       "rssFeedUrls": [
-        "https://rsshub0424.onrender.com/wechat/sogou/DCTA2024"
+        "https://rsshub0424.onrender.com/wechat/sogou/%E6%95%B0%E5%AD%97%E6%96%87%E6%97%85%E8%A7%82%E5%AF%9F"
       ],
       "maxArticlesPerCheck": 6,
       "selectors": {}
     },
     {
       "id": "shanghai-tourism-industry-institute",
+      "sourceType": "wechat",
       "accountName": "上海文旅产业研究院",
       "seedArticleUrl": "https://mp.weixin.qq.com/s/x1kS-ky3jcnGeNgnQoL57A",
       "searchQuery": "上海文旅产业研究院",
-      "maxArticleAgeDays": 2,
+      "maxArticleAgeDays": 3,
       "rssFeedUrls": [
         "https://rsshub0424.onrender.com/wechat/sogou/%E4%B8%8A%E6%B5%B7%E6%96%87%E6%97%85%E4%BA%A7%E4%B8%9A%E7%A0%94%E7%A9%B6%E9%99%A2"
       ],
       "maxArticlesPerCheck": 6,
+      "selectors": {}
+    },
+    {
+      "id": "jiemian-travel",
+      "sourceType": "news-site",
+      "accountName": "界面新闻·文旅",
+      "seedArticleUrl": "https://www.jiemian.com/lists/105.html",
+      "maxArticleAgeDays": 3,
+      "rssFeedUrls": [
+        "https://rsshub0424.onrender.com/jiemian/lists/105"
+      ],
+      "maxArticlesPerCheck": 10,
+      "selectors": {}
+    },
+    {
+      "id": "jiemian-culture",
+      "sourceType": "news-site",
+      "accountName": "界面新闻·文化",
+      "seedArticleUrl": "https://www.jiemian.com/lists/130.html",
+      "maxArticleAgeDays": 3,
+      "rssFeedUrls": [
+        "https://rsshub0424.onrender.com/jiemian/lists/130"
+      ],
+      "keywordFilter": ["文旅", "旅游", "景区", "文化", "博物馆", "非遗"],
+      "maxArticlesPerCheck": 8,
+      "selectors": {}
+    },
+    {
+      "id": "chinanews-tourism",
+      "sourceType": "news-site",
+      "accountName": "中国新闻网·旅游",
+      "seedArticleUrl": "https://www.chinanews.com.cn/",
+      "maxArticleAgeDays": 3,
+      "rssFeedUrls": [
+        "https://rsshub0424.onrender.com/chinanews"
+      ],
+      "keywordFilter": ["旅游", "文旅", "景区", "度假", "民宿", "非遗", "博物馆", "文化产业"],
+      "maxArticlesPerCheck": 10,
+      "selectors": {}
+    },
+    {
+      "id": "meadin-wl",
+      "sourceType": "scrape",
+      "accountName": "迈点·文旅",
+      "seedArticleUrl": "https://www.meadin.com/wl/",
+      "maxArticleAgeDays": 3,
+      "rssFeedUrls": [
+        "https://www.meadin.com/wl/"
+      ],
+      "maxArticlesPerCheck": 10,
+      "selectors": {}
+    },
+    {
+      "id": "meadin-jd",
+      "sourceType": "scrape",
+      "accountName": "迈点·酒店",
+      "seedArticleUrl": "https://www.meadin.com/jd/",
+      "maxArticleAgeDays": 3,
+      "rssFeedUrls": [
+        "https://www.meadin.com/jd/"
+      ],
+      "maxArticlesPerCheck": 8,
       "selectors": {}
     }
   ]

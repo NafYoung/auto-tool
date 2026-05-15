@@ -83,6 +83,19 @@ program
     });
   });
 
+program
+  .command("serve")
+  .description("启动 HTTP API 服务（供 Claude Code Skill 调用）")
+  .option("-c, --config <path>", configHelpText)
+  .option("-p, --port <port>", "监听端口", "3457")
+  .action(async (options) => {
+    const { startServer } = await import("./server.js");
+    await startServer({
+      port: Number(options.port),
+      configPath: options.config,
+    });
+  });
+
 program.parseAsync(process.argv).catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;

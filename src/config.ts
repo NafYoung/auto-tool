@@ -21,12 +21,14 @@ const selectorsSchema = z
 const sourceSchema = z.object({
   id: z.string().min(1),
   accountName: z.string().min(1),
-  seedArticleUrl: z.string().url(),
+  sourceType: z.enum(["wechat", "news-site", "policy", "scrape"]).optional(),
+  seedArticleUrl: z.string().url().optional().default("https://mp.weixin.qq.com/s/placeholder"),
   searchQuery: z.string().min(1).optional(),
   rssFeedUrls: z.array(z.string().url()).min(1).optional(),
   profileUrl: z.string().url().optional(),
   maxArticleAgeDays: z.number().int().positive().max(30).default(2),
   maxArticlesPerCheck: z.number().int().positive().max(20).default(6),
+  keywordFilter: z.array(z.string().min(1)).optional(),
   selectors: selectorsSchema,
 });
 
@@ -87,9 +89,11 @@ export async function loadConfig(configPath = DEFAULT_CONFIG_PATH): Promise<AppC
     maxArticleAgeDays: source.maxArticleAgeDays,
     maxArticlesPerCheck: source.maxArticlesPerCheck,
     selectors: source.selectors,
+    ...(source.sourceType ? { sourceType: source.sourceType } : {}),
     ...(source.searchQuery ? { searchQuery: source.searchQuery } : {}),
     ...(source.rssFeedUrls ? { rssFeedUrls: source.rssFeedUrls } : {}),
     ...(source.profileUrl ? { profileUrl: source.profileUrl } : {}),
+    ...(source.keywordFilter?.length ? { keywordFilter: source.keywordFilter } : {}),
   }));
 
   return {

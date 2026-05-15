@@ -1,27 +1,31 @@
 # 文旅公众号日报器
 
-一个运行在本机 Mac 上的 Node.js 工具：用 Playwright 检查指定公众号是否有新文章，调用 DeepSeek 生成文旅日报，并通过 SMTP 发邮件。
+一个运行在本机 Mac 上的 Node.js 工具：从微信公众号、新闻网站、政策门户等多源渠道自动采集文旅行业资讯，调用 DeepSeek 生成结构化日报，并通过 SMTP 发邮件。同时提供 HTTP API，支持外部系统查询文章与日报数据。
 
-现在支持两种运行模式：
+现在支持三种运行模式：
 
 - `本机模式`：搜狗搜索发现文章，适合你当前这台 Mac
 - `云端模式`：RSS/Atom 订阅源发现文章，适合 GitHub Actions 或常开云主机
+- `API 模式`：启动 HTTP 服务，供 Claude Code Skill 或其他系统调用
 
 ## 项目成果与使用证明
 
-这个项目面向“文旅公众号信息分散、人工盯更新和整理日报效率低”的痛点，搭建了一条从内容发现到邮件分发的 AI 自动化工作流：
+这个项目面向"文旅行业信息分散、人工盯更新和整理日报效率低"的痛点，搭建了一条从多源内容发现到邮件分发的 AI 自动化工作流：
 
 ```text
-定时触发 -> 文章发现 -> 正文抓取 -> 清洗去重 -> DeepSeek 逐篇摘要 -> 日报总览生成 -> Markdown 归档 -> 邮件分发 -> 状态持久化
+定时触发 -> 多源文章发现 -> 正文抓取 -> 清洗去重 -> 关键词过滤 -> DeepSeek 逐篇摘要 -> 日报总览生成 -> Markdown 归档 -> 邮件分发 -> 状态持久化
 ```
 
 核心能力：
 
-- 用 Playwright/RSS/Wechat2RSS 发现并抓取目标公众号文章，保留真实原文链接。
+- 用 Playwright/RSS/新闻网站爬虫发现并抓取目标来源文章，保留真实原文链接。
+- 支持微信公众号（搜狗搜索 + RSS）、新闻网站（界面新闻、迈点、执惠）、政策门户（中国政府网）等多种来源类型。
+- 用 `keywordFilter` 对非公众号来源做关键词过滤，确保只采集文旅相关内容。
 - 用 DeepSeek 生成逐篇摘要和当天总览，并输出 Markdown 日报。
 - 用 `state.json` 记录已处理文章、失败来源、日报发送状态，避免重复发送。
+- 提供 HTTP API（`npm run serve`），支持文章查询、日报获取、触发采集等操作。
 - 支持本机 `launchd` 兜底和 GitHub Actions 云端定时运行。
-- 已加入测试覆盖，包含抓取、状态、配置、日报、RSS 和工作流等关键逻辑。
+- 已加入测试覆盖，包含抓取、状态、配置、日报、RSS、爬虫和工作流等关键逻辑。
 
 运行证明：
 
@@ -42,9 +46,38 @@ npm run report -- --date 2026-04-01
 npm run report -- --date 2026-04-01 --send-email
 npm run report -- --date 2026-04-01 --send-email --mark-as-sent
 npm run run-daily
+npm run serve
 npm run install-launchd
 npm run uninstall-launchd
 ```
+
+## HTTP API
+
+`npm run serve` 启动后，默认监听 `http://localhost:3457`，提供以下端点：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/public/items?since=<ISO>&take=50&q=<keyword>&category=<id>` | 查询文章列表 |
+| GET | `/api/public/daily` | 获取今日日报 |
+| GET | `/api/public/daily/{YYYY-MM-DD}` | 获取指定日期日报 |
+| GET | `/api/public/dailies?take=30` | 获取历史日报列表 |
+| GET | `/api/public/health` | 健康检查 |
+| POST | `/api/admin/check` | 触发一次采集 |
+| POST | `/api/admin/report?date=YYYY-MM-DD&send-email` | 触发日报生成 |
+
+## 数据源
+
+当前配置了 5 类数据来源：
+
+| 来源 | 类型 | 发现方式 |
+|------|------|----------|
+| 数字文旅观察 | 微信公众号 | 搜狗搜索 + RSS |
+| 上海文旅产业研究院 | 微信公众号 | 搜狗搜索 + RSS |
+| 界面新闻（文旅 / 文化） | 新闻网站 | RSS + 关键词过滤 |
+| 中国政府网·政策 | 政策门户 | RSS + 关键词过滤 |
+| 迈点 / 执惠 | 行业网站 | HTML 爬虫（scraper） |
+
+新增来源只需在 `wenlv.config.json` 的 `sources` 数组中添加配置项，支持 `wechat`、`news-site`、`policy`、`scrape` 四种 `sourceType`。
 
 ## 环境变量
 
@@ -86,13 +119,13 @@ cp wenlv.config.example.json wenlv.config.local.json
 
 补充说明：
 
-- `npm run report -- --date YYYY-MM-DD --send-email` 默认是“测试发送”，会发邮件，但不会把这次发送记成当天正式发送。
+- `npm run report -- --date YYYY-MM-DD --send-email` 默认是"测试发送"，会发邮件，但不会把这次发送记成当天正式发送。
 - 如果你希望手动补发后，系统把它视为当天正式发送，请使用 `--mark-as-sent`。
 - `run-daily` / `launchd` 触发的每日任务会自动把当天成功发送记为正式发送。
 - 本机 `run-daily` / `launchd` 即使当天无新文章，也会发送一封状态邮件，便于确认无人值守链路按时运行。
 - GitHub Actions 如果没有从 RSS 中发现新文章，只会生成状态报告并提交运行状态，不会发送空邮件，也不会阻止 20:30 的本机兜底复核。
 - `dailyReportTime: 19:00` 只定义日报统计窗口截止时间，不代表实际发送时间。
-- 当前默认采用“双通道”：GitHub Actions 在 `20:15` 做云端主发送，本机 `launchd` 在 `20:30` 做兜底；只有云端已经发出包含文章的正式日报时，本机才会跳过。
+- 当前默认采用"双通道"：GitHub Actions 在 `20:15` 做云端主发送，本机 `launchd` 在 `20:30` 做兜底；只有云端已经发出包含文章的正式日报时，本机才会跳过。
 
 ## Wechat2RSS 接入
 
@@ -124,7 +157,7 @@ npm run sync-feeds
 
 ## 云端模式（第二阶段）
 
-如果你希望“电脑关机后也能自动发”，不要再依赖本机 `launchd`。第二阶段的推荐做法是：
+如果你希望"电脑关机后也能自动发"，不要再依赖本机 `launchd`。第二阶段的推荐做法是：
 
 1. 给每个 `source` 配置 `rssFeedUrls`
 2. 把仓库推到 GitHub
@@ -142,10 +175,10 @@ npm run sync-feeds
 
 - 云端模式优先使用 RSS/Atom 中携带的全文生成日报，避免在 GitHub Actions 里打开真实微信文章页触发访问限制。
 - 当前仓库里的 GitHub Actions 工作流会在北京时间 `20:15` 定时执行，也支持手动触发。
-- GitHub Actions 采用“部分成功可发送”策略：只要至少一个源抓到新文章，就会发送日报；失败源会写进“抓取异常”段落，但不再整体阻断发信。
+- GitHub Actions 采用"部分成功可发送"策略：只要至少一个源抓到新文章，就会发送日报；失败源会写进"抓取异常"段落，但不再整体阻断发信。
 - GitHub Actions 现在会强制使用 `rss-only` 发现模式，不再回退到搜狗搜索，避免 headless 环境下的搜狗反爬噪音。
 - 云端 `rss-only` 模式会跳过订阅源里的 `weixin.sogou.com/link` 搜狗跳转链接，也会跳过未携带全文的直接微信链接；要稳定运行，订阅源最好直接返回 `mp.weixin.qq.com` 原文链接，并在 `content:encoded`、`content` 或足够长的 `description` 中携带正文。
-- 工作流会把 `data/state.json` 和 `reports/*.md` 提交回仓库，确保“已处理文章”状态能跨天持久化。
+- 工作流会把 `data/state.json` 和 `reports/*.md` 提交回仓库，确保"已处理文章"状态能跨天持久化。
 - 如果不持久化状态，第二天运行会把同一批旧文章再次算作新文章。
 
 `rssFeedUrls` 是第二阶段的关键配置。当前代码支持任意 RSS/Atom 订阅源；云端无人值守模式要求 feed 条目链接直接指向真实公众号文章页，并携带可读正文。
@@ -190,7 +223,17 @@ npm run uninstall-launchd
 
 ## 目录说明
 
-- `src/`：命令行、抓取、摘要、日报和邮件逻辑。
+- `src/`：命令行、抓取、摘要、日报、邮件和 API 逻辑。
+  - `wechat.ts`：微信公众号文章发现与抓取（搜狗搜索 + Playwright）
+  - `scraper.ts`：新闻网站爬虫（迈点、执惠等，cheerio + fetch）
+  - `feed.ts`：RSS/Atom 订阅源解析与关键词过滤
+  - `server.ts`：HTTP API 服务
+  - `workflow.ts` / `pipeline.ts`：主流程编排
+  - `deepseek.ts`：DeepSeek 摘要生成
+  - `digest.ts` / `report.ts`：日报拼装与归档
+  - `email.ts`：SMTP 邮件分发
+  - `state.ts`：状态持久化
+  - `config.ts`：配置加载与校验
 - `data/state.json`：运行态，保存已处理文章、失败记录和日报发送状态。
 - `reports/YYYY-MM-DD.md`：日报归档。
 - `wenlv.config.json`：公开模板配置，适合放进仓库。
@@ -199,9 +242,11 @@ npm run uninstall-launchd
 
 ## 配置示例
 
-`wenlv.config.example.json` 现在同时展示了两类发现方式：
+`wenlv.config.example.json` 展示了多种来源类型的配置方式：
 
-- `searchQuery`：本机模式，走搜狗搜索
-- `rssFeedUrls`：云端模式，走 RSS/Atom 订阅源
+- `sourceType: "wechat"`：微信公众号，走搜狗搜索 + RSS
+- `sourceType: "news-site"`：新闻网站，走 RSS + 关键词过滤
+- `sourceType: "policy"`：政策门户，走 RSS + 关键词过滤
+- `sourceType: "scrape"`：行业网站，走 HTML 爬虫
 
-如果同时配置了 `rssFeedUrls`，程序会优先使用订阅源发现文章。
+如果同时配置了 `rssFeedUrls`，程序会优先使用订阅源发现文章。`keywordFilter` 可用于对非公众号来源做内容过滤，只保留包含指定关键词的文章。
